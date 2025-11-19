@@ -1,5 +1,7 @@
 # Feature Specification: Modern Powerups — Pacman (Single-player)
 
+> **Canonical source:** This file (`spec.md`) is the canonical specification. Edit `spec.md` to make changes. Do not edit `spec_filled.md` directly — regenerate it using `.specify/scripts/powershell/generate-spec-filled.ps1`.
+
 
 ## Clarifications
 
@@ -88,7 +90,7 @@ Acceptance Scenarios:
 
 ### Score & Persistence
 
-- **FR-009**: Score calculation MUST account for active `ScoreMultiplier` powerups deterministically.
+- **FR-009**: Score calculation MUST account for active `ScoreMultiplier` powerups deterministically. If a player collects another ScoreMultiplier while one is active, the multipliers stack (e.g., x2 → x4) and durations run independently.
 - **FR-010**: High score MUST be stored locally on device (simple local persistence) and displayable from the main menu.
 
 ### Testing & Stability
