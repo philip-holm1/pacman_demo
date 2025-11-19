@@ -15,6 +15,13 @@ Add a set of modern, varied powerups and related UX polish to a classic single-p
 - Keep single-player, local-first experience; no online multiplayer required.
 - Make additions modular so the core game remains recognizable and playable without powerups.
 
+## Clarifications
+
+### Session 2025-11-19
+
+- Q: Should different powerups run concurrently, replace the active effect, or queue? → A: Option A — Different powerups run concurrently; collecting the same powerup refreshes its duration (no stacking).
+ - Q: Target platform and primary input method? → A: Option A — Desktop (Windows/macOS/Linux) — primary input: keyboard; optional gamepad support.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Start & Play (Priority: P1)
@@ -60,7 +67,7 @@ Acceptance Scenarios:
 
 ### Edge Cases
 
-- Player collects two different powerups in quick succession: effects should either stack or the second should queue—behavior specified in Requirements.
+- Player collects two different powerups in quick succession: different powerups run concurrently; collecting the same powerup refreshes its duration (does not stack).
 - Powerup spawn attempts to place an item inside a wall or ghost: game must retry spawn location until valid.
 - If the game is paused while a powerup is active, timers pause and resume on unpause.
 
@@ -72,7 +79,7 @@ Acceptance Scenarios:
 - **FR-002**: Each powerup MUST have a configurable duration (default 8 seconds) and a visual timer visible to the player.
 - **FR-003**: Powerups MUST spawn at predictable intervals (configurable) and only on valid, non-blocked tiles.
 - **FR-004**: When a powerup is collected, the effect MUST begin immediately and expire automatically after its duration.
-- **FR-005**: The system MUST define stacking rules: collecting the same powerup while active MUST refresh duration (not stack), while collecting different powerups MAY run concurrently.
+- **FR-005**: The system MUST define stacking rules: collecting the same powerup while active MUST refresh duration (not stack). Different powerup types MUST run concurrently.
 
 ### Gameplay & UX
 
