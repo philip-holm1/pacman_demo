@@ -1,29 +1,28 @@
 # Feature Specification: Modern Powerups — Pacman (Single-player)
 
-**Feature Branch**: `001-modern-powerups-pacman`  
-**Created**: 2025-11-19  
-**Status**: Draft  
-**Input**: User description: "i am creating a pacman game but with a more modern twist. Keep the games retro feel but I want to incorporate something new with different powerups. Its a Single player to be played locally on the device. create the specification for this product"
-
-## Summary
-
-Add a set of modern, varied powerups and related UX polish to a classic single-player Pacman-style game while preserving the retro look-and-feel. Powerups should introduce short-term strategic choices and new player goals without altering core maze and ghost behavior beyond clear, testable effects.
-
-## Goals
-
-- Refresh classic gameplay with new powerup mechanics and pick-ups that feel modern but retro-styled.
-- Keep single-player, local-first experience; no online multiplayer required.
-- Make additions modular so the core game remains recognizable and playable without powerups.
 
 ## Clarifications
 
 ### Session 2025-11-19
 
 - Q: Should different powerups run concurrently, replace the active effect, or queue? → A: Option A — Different powerups run concurrently; collecting the same powerup refreshes its duration (no stacking).
- - Q: Target platform and primary input method? → A: Option A — Desktop (Windows/macOS/Linux) — primary input: keyboard; optional gamepad support.
+- Q: Powerup spawn logic? → A: Option D — Only after certain events (e.g., pellet threshold).
+- Q: Powerup visual timer UI format? → A: Option B — Progress bar under icon.
+- Q: Audio/visual feedback style? → A: Option C — Both animation and sound, 0.5s, distinct per type.
+- Q: Pause/Resume visual behavior? → A: Option B — All elements freeze; HUD shows active effects/timers.
+- Q: Ghost/actor overlap spawn retry logic? → A: Option A — Retry 10 times, then skip spawn.
+**Input**: User description: "i am creating a pacman game but with a more modern twist. Keep the games retro feel but I want to incorporate something new with different powerups. Its a Single player to be played locally on the device. create the specification for this product"
 
-## User Scenarios & Testing *(mandatory)*
 
+- Powerup spawn attempts to place an item inside a wall or ghost: retry up to 10 times; if no valid spawn, skip powerup spawn for that interval.
+
+- Refresh classic gameplay with new powerup mechanics and pick-ups that feel modern but retro-styled.
+
+- **FR-003**: Powerups MUST spawn only after certain events (e.g., after collecting a set number of pellets per level; event threshold configurable) and only on valid, non-blocked tiles. If spawn location is invalid, retry up to 10 times; skip spawn if still invalid.
+
+- Q: Should different powerups run concurrently, replace the active effect, or queue? → A: Option A — Different powerups run concurrently; collecting the same powerup refreshes its duration (no stacking).
+
+- **FR-007**: Each powerup pickup MUST trigger a 0.5s retro animation and sound, distinct for each powerup type.
 ### User Story 1 — Start & Play (Priority: P1)
 
 As a player, I can start a local game, control Pacman, collect pellets and powerups, and complete a level.

@@ -7,22 +7,23 @@
 
 ## Summary
 
-Add a set of modern, varied powerups and related UX polish to a classic single-player Pacman-style game while preserving the retro look-and-feel. Powerups should introduce short-term strategic choices and new player goals without altering core maze and ghost behavior beyond clear, testable effects.
+## Clarifications
 
+### Session 2025-11-19
+
+- Q: Should different powerups run concurrently, replace the active effect, or queue? → A: Option A — Different powerups run concurrently; collecting the same powerup refreshes its duration (no stacking).
 ## Goals
 
 - Refresh classic gameplay with new powerup mechanics and pick-ups that feel modern but retro-styled.
-- Keep single-player, local-first experience; no online multiplayer required.
-- Make additions modular so the core game remains recognizable and playable without powerups.
 
+// Clarified stacking/queuing behavior per Option A:
+- Player collects two different powerups in quick succession: different powerups run concurrently; collecting the same powerup refreshes its duration (does not stack).
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 — Start & Play (Priority: P1)
 
-As a player, I can start a local game, control Pacman, collect pellets and powerups, and complete a level.
-
-Why this priority: Core loop — without this the feature has no value.
-
+// Clarified stacking/queuing rules:
+- **FR-005**: The system MUST define stacking rules: collecting the same powerup while active MUST refresh duration (not stack). Different powerup types MUST run concurrently.
 Independent Test: Launch the game, start a level, control player to collect pellets and at least one powerup; level completes when all pellets collected.
 
 Acceptance Scenarios:
