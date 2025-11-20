@@ -2,7 +2,7 @@
 
 Feature: Modern Powerups — Pacman (Single-player)
 Spec: `/specs/001-modern-powerups-pacman/spec.md`
-Plan: `/specs/master/plan.md`
+Plan: `/specs/001-modern-powerups-pacman/plan.md`
 
 ## Phase 1: Setup (Project Initialization)
 Goal: Establish repository structure, dependencies, baseline config, and placeholder assets to enable iterative development.
@@ -37,6 +37,8 @@ Independent Test Criteria: Unit tests pass for level loading and collision; play
 - [ ] T020 Add unit test `tests/unit/test_level_loader.py` for loader correctness (pellet count, dimensions)
 - [ ] T021 [P] Add unit test `tests/unit/test_collision.py` for wall vs pellet detection
 - [ ] T022 Add unit test `tests/unit/test_pause.py` ensuring paused state stops tick increment
+- [ ] T062 Implement life decrement on ghost collision (extend `collision.py` to detect ghost contact)
+- [ ] T063 Add unit test `tests/unit/test_life_decrement.py` verifying lives reduce and not below zero
 
 ## Phase 3: User Story US1 — Start & Play (Priority P1)
 Story Goal: Player can start a local game, control Pacman, collect pellets, and complete the level.
@@ -50,6 +52,8 @@ Independent Test Criteria: Start game → move player → collect all pellets �
 - [ ] T027 [US1] Implement restart handling (R key) resetting GameState
 - [ ] T028 [P] [US1] Add unit test `tests/unit/test_level_completion.py` for pellet exhaustion triggers
 - [ ] T029 [US1] Add integration test `tests/unit/test_restart.py` verifying restart resets score and pellets
+- [ ] T064 [US1] Implement game over screen state (`src/pacman/systems/screens.py`) with restart prompt (R key)
+- [ ] T065 [US1] Add unit test `tests/unit/test_game_over_restart_flow.py` verifying game over triggers at 0 lives and restart resets state
 
 ## Phase 4: User Story US2 — Powerup Interaction (Priority P1)
 Story Goal: Player collects powerups that modify gameplay with concurrent effects and visible timers.
@@ -57,7 +61,7 @@ Independent Test Criteria: Collect each powerup type; observe effect start, time
 
 ### Tasks
 - [ ] T030 [US2] Implement `src/pacman/systems/powerup_manager.py` with spawn, collect, update APIs (per contract)
-- [ ] T031 [P] [US2] Implement spawn threshold logic (pellet count event) inside powerup_manager
+- [ ] T031 [P] [US2] Implement pellet-threshold spawn logic (every N pellets) inside powerup_manager
 - [ ] T032 [US2] Integrate powerup spawn call into main loop after threshold check (`game.py`)
 - [ ] T033 [US2] Implement SpeedBoost effect application (player velocity multiplier) inside update_powerups
 - [ ] T034 [US2] Implement GhostFreeze effect (ghost state frozen) inside update_powerups
@@ -65,11 +69,18 @@ Independent Test Criteria: Collect each powerup type; observe effect start, time
 - [ ] T036 [US2] Implement InvincibilityBlink effect (ignore ghost collision) with visual indicator
 - [ ] T037 [P] [US2] Implement powerup HUD timers and progress bars (`src/pacman/systems/hud_powerups.py`)
 - [ ] T038 [US2] Integrate event bus events for collected/expired (`event_bus.py` → used in HUD updates)
-- [ ] T039 [US2] Add unit test `tests/unit/test_powerup_spawn_logic.py` (valid tile, retry cap)
+- [ ] T039 [US2] Add unit test `tests/unit/test_powerup_spawn_threshold_and_retry.py` (threshold trigger, valid tile, retry cap)
 - [ ] T040 [US2] Add unit test `tests/unit/test_powerup_duration_refresh.py` (same-type refresh behavior)
 - [ ] T041 [US2] Add unit test `tests/unit/test_score_multiplier_stack.py` (x2 → x4 stacking scenario)
 - [ ] T042 [P] [US2] Add unit test `tests/unit/test_powerup_expiry.py` (expires_at_tick removal)
 - [ ] T043 [US2] Add unit test `tests/unit/test_concurrent_powerups.py` (speed + freeze independent)
+- [ ] T066 [US2] Add unit test `tests/unit/test_powerup_spawn_overlap_avoidance.py` (skip after 10 failed placements on occupied tiles)
+- [ ] T067 [US2] Add unit test `tests/unit/test_powerup_timer_accuracy.py` (±0.5s display vs tick-based remaining)
+- [ ] T068 [US2] Add unit test `tests/unit/test_pause_timer_ui_freeze.py` (no visual decrement while paused)
+- [ ] T069 [US2] Add unit test `tests/unit/test_invincibility_blink_interval.py` (blink toggles ~every 0.2s)
+- [ ] T070 [US2] Add unit test `tests/unit/test_ghost_freeze_no_movement.py` (ghost positions unchanged while frozen)
+- [ ] T071 [US2] Add unit test `tests/unit/test_ghost_freeze_no_score_change.py` (score unaffected by freeze alone)
+- [ ] T072 [US2] Add unit test `tests/unit/test_score_multiplier_cap.py` (cap at x8)
 
 ## Phase 5: User Story US3 — Score & Feedback (Priority P2)
 Story Goal: Immediate visual/audio feedback for scoring & powerup pickups; scoreboard updates correctly including multipliers.
@@ -100,6 +111,8 @@ Independent Test Criteria: All unit tests pass; manual playtest shows stable 30�
 - [ ] T059 Update README with powerup rules & controls section
 - [ ] T060 [P] Add docstring coverage check script `scripts/check_docstrings.py`
 - [ ] T061 Final manual QA checklist markdown `specs/001-modern-powerups-pacman/checklists/qa_playtest.md`
+- [ ] T073 Add long-run stability script `scripts/run_stability_test.py` (60-minute randomized movement)
+- [ ] T074 Add performance assertion harness `scripts/verify_performance.py` (parse frame log, enforce thresholds)
 
 ## Dependencies & Order
 Story Completion Order: US1 (core loop) → US2 (powerup mechanics) → US3 (feedback & scoring polish) → Polish.
@@ -122,23 +135,24 @@ Post-MVP Increment Steps:
 
 ## Task Count Summary
 - Setup: 10 tasks
-- Foundational: 12 tasks (T011–T022)
-- US1: 7 tasks (T023–T029)
-- US2: 14 tasks (T030–T043)
+- Foundational: 14 tasks (T011–T022, T062–T063)
+- US1: 9 tasks (T023–T029, T064–T065)
+- US2: 21 tasks (T030–T043, T066–T072)
 - US3: 9 tasks (T044–T052)
-- Polish: 9 tasks (T053–T061)
-Total: 61 tasks
+- Polish: 11 tasks (T053–T061, T073–T074)
+Total: 74 tasks
 
 ## Format Validation
 All tasks follow required format: `- [ ] T### [P]? [US#]? Description with file path`. Non-story phases omit story labels. Parallelizable tasks marked `[P]` only when independent (different files, no unmet dependencies).
 
 ## Independent Test Criteria Recap
-- US1: Start, control, collect pellets, victory triggers.
-- US2: Collect each powerup; timer & effect concurrency validated; expiry reverts state.
-- US3: Score updates with multiplier; audio + animation feedback visible; high score persists.
+- US1: Start, control, collect pellets, victory triggers, lives decrement on ghost collisions, game over at 0 lives, restart after game over.
+- US2: Collect each powerup; timer & effect concurrency validated; expiry reverts state; spawn threshold & retry; overlap avoidance skip; timer accuracy ±0.5s; blink every ~0.2s; multiplier cap; ghost freeze effects.
+- US3: Score updates with multiplier; audio + animation feedback visible; high score persists (fallback logged on write failure).
+- Polish: Long-run (60 min) stability; performance thresholds (avg FPS ≥30, 95th percentile frame time ≤2× target); pause timer UI freeze.
 
 ## MVP Confirmation
-MVP = US1 completion (core loop). Parallelizable tasks flagged to accelerate delivery.
+MVP = US1 core loop plus constitution-critical lives & game over (T062–T065). Parallelizable tasks flagged to accelerate delivery.
 
 ---
 End of tasks.md

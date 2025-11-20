@@ -1,7 +1,7 @@
 ```markdown
 # Implementation Plan: Modern Powerups — Pacman (Python)
 
-**Branch**: `master` | **Date**: 2025-11-19 | **Spec**: `/specs/001-modern-powerups-pacman/spec.md`
+**Branch**: `001-modern-powerups-pacman` | **Date**: 2025-11-19 | **Spec**: `/specs/001-modern-powerups-pacman/spec.md`
 **Input**: Feature specification located at `/specs/001-modern-powerups-pacman/spec.md`
 
 ## Summary
@@ -18,8 +18,8 @@ Technical approach: use a lightweight Python game library for rendering and inpu
 **Testing**: `pytest` for unit tests; focus on deterministic logic (collision, powerup timers, spawn rules). Simple integration script for smoke-test playthroughs.
 **Target Platform**: Desktop platforms (Windows primary for development, also Linux/macOS supported). No network or cloud required (constitution: local-first).
 **Project Type**: Single local game project (library + small runner). Source layout under `src/` with a small CLI/runner at repo root.
-**Performance Goals**: Target stable 60 FPS on typical development machines; accept 30 FPS minimum. Use a fixed-timestep update loop to ensure deterministic behavior across runs.
-**Constraints**: Offline-first, deterministic tick behavior, minimal asset set, no external services. Game must pause/resume and freeze timers during pause. Powerups cannot rely on non-deterministic timers.
+**Performance Goals**: Target stable 60 FPS; accept 30 FPS minimum. Fixed-timestep loop ensures determinism. Frame time logger will record per-tick durations; 95th percentile frame time ≤ 2× target frame time.
+**Constraints**: Offline-first, deterministic tick behavior, minimal asset set, no external services. Game must pause/resume and freeze timers (HUD timers visually stop). Powerups cannot rely on non-deterministic timers. RNG for spawn tile selection seeded once per run (e.g., `random.seed(LEVEL_SEED)`); optional spawn log enables replay.
 **Scale/Scope**: Small demo (single level shipped, single-player local). Codebase expected to be <5k LOC initially.
 
 ## Constitution Check
@@ -30,7 +30,8 @@ Gates (from `.specify/memory/constitution.md`) and evaluation:
 - Gate: Deterministic behavior — PASS (fixed-timestep loop required in design).
 - Gate: Testable core units — PASS (pytest planned for collision, scoring, powerup timers, spawn logic).
 - Gate: One playable level & assets — PASS (deliver `levels/level1.json` and minimal `assets/`).
-- Gate: Pause/Resume behavior — PASS (design will pause timers and effects).
+- Gate: Pause/Resume behavior — PASS (design will pause timers and effects; HUD timers freeze visually).
+- Gate: Lives/Game Over — PASS (lives decrement & game over state in spec FR-012/FR-013).
 
 All constitution gates are satisfied by this plan. No violations identified.
 
@@ -77,7 +78,7 @@ data/
 └── highscore.json
 ```
 
-**Structure Decision**: Single Python package reduces complexity, supports fast iteration, and aligns with constitution (local, testable, deterministic). `pygame` will be used for input/render/audio and kept behind a thin rendering/IO layer to allow easier unit testing of logic.
+**Structure Decision**: Single Python package reduces complexity, supports fast iteration, and aligns with constitution (local, testable, deterministic). `pygame` behind thin rendering layer enables unit tests. Timer accuracy validated against tick count; InvincibilityBlink blink cadence (0.2s) derived from tick interval; multiplier cap logic enforced in scoring tests; spawn retry capped at 10 with skip fallback.
 
 ## Phase Breakdown (high level)
 
@@ -85,11 +86,15 @@ Phase 0 — Research: choose libraries, finalize deterministic loop strategy, po
 
 Phase 1 — Design: produce `data-model.md`, module contracts under `contracts/`, and `quickstart.md`. Update agent context. Implement minimal `levels/level1.json` and placeholder assets.
 
-Phase 2 — Implementation & Tests: implement game loop, entities, powerup manager, HUD, persistence, and tests. Ship playable demo and acceptance tests.
+Phase 2 — Implementation & Tests: implement game loop, entities, powerup manager, HUD, persistence, lives & game over logic, and tests (spawn overlap avoidance & timer accuracy). Ship playable demo and acceptance tests.
 
 ## Complexity Tracking
 
 No constitution violations; no additional complexity justifications required at this time.
+
+### Stability & Measurement Addendum
+
+Long-run stability validated via a 60-minute automated movement script (random direction changes at fixed intervals). Performance harness computes average FPS and percentile frame times; failure thresholds trigger test failure. Determinism documented via seed value captured in run log. Timer accuracy and blink cadence tests verify SC-003 and FR-014.
 
 ```
 directories captured above]
