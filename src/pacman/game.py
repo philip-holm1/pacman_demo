@@ -68,13 +68,30 @@ class FixedTimestepLoop:
             if sample.restart and self.state.mode in ("victory", "game_over"):
                 handle_restart(self.state)
             dx, dy = sample.move_dx, sample.move_dy
+            # Update player's last movement direction if input present
+            if (dx, dy) != (0, 0):
+                self.state.player.last_move_dx = dx
+                self.state.player.last_move_dy = dy
 
         self.state.tick()
         if not self.state.paused:
             moved = False
-            if dx or dy:
-                moved = attempt_player_move(self.state.player, self.state.level, dx, dy)
-            if not moved and self.input is None:
+            # Determine effective movement interval based on speed multiplier
+            speed_mult = max(0.01, self.state.player.speed_multiplier)
+            interval = max(1, int(config.BASE_PLAYER_MOVE_INTERVAL_TICKS / speed_mult))
+            should_step = (self.state.tick_count % interval) == 0
+            intended_dx, intended_dy = dx, dy
+            if intended_dx == 0 and intended_dy == 0:
+                # Preserve last movement if no new input
+                intended_dx = self.state.player.last_move_dx
+                intended_dy = self.state.player.last_move_dy
+            if should_step and (intended_dx or intended_dy):
+                moved = attempt_player_move(self.state.player, self.state.level, intended_dx, intended_dy)
+                if moved:
+                    # keep last direction consistent
+                    self.state.player.last_move_dx = intended_dx
+                    self.state.player.last_move_dy = intended_dy
+            if not moved and self.input is None and should_step:
                 # Fallback automated movement if no input handler
                 moved = attempt_player_move(self.state.player, self.state.level, 1, 0)
                 if not moved:

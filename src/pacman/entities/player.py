@@ -15,6 +15,8 @@ class Player:
     score_multiplier: int = 1
     speed_multiplier: float = 1.0
     blink_on: bool = True  # used for InvincibilityBlink visual toggle
+    last_move_dx: int = 1
+    last_move_dy: int = 0
 
     def move(self, nx: int, ny: int) -> None:
         self.x = nx
