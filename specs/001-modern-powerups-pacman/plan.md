@@ -42,15 +42,12 @@ Documentation and design files for this feature (created by this plan):
 ```
 specs/001-modern-powerups-pacman/
 ├── spec.md
-├── spec_filled.md
-└── checklists/
-
-specs/master/
 ├── plan.md            # this file (implementation plan)
 ├── research.md        # Phase 0 output
 ├── data-model.md      # Phase 1 output
 ├── quickstart.md      # Phase 1 output
-└── contracts/         # Phase 1 output (module contracts)
+├── contracts/         # Phase 1 output (module contracts)
+└── checklists/
 ```
 
 Suggested source layout (single project):
@@ -86,7 +83,7 @@ Phase 0 — Research: choose libraries, finalize deterministic loop strategy, po
 
 Phase 1 — Design: produce `data-model.md`, module contracts under `contracts/`, and `quickstart.md`. Update agent context. Implement minimal `levels/level1.json` and placeholder assets.
 
-Phase 2 — Implementation & Tests: implement game loop, entities, powerup manager, HUD, persistence, lives & game over logic, and tests (spawn overlap avoidance & timer accuracy). Ship playable demo and acceptance tests.
+Phase 2 — Implementation & Tests: implement game loop, entities, powerup manager, HUD, persistence, and core tests (spawn overlap avoidance & timer accuracy). NOTE: Lives decrement logic is elevated into Foundational; Game Over screen & restart integrated early in US1 to satisfy constitution minimal loop (win + loss paths before powerups).
 
 ## Complexity Tracking
 

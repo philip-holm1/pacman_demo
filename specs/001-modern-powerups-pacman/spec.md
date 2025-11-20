@@ -134,7 +134,7 @@ Acceptance Scenarios:
 ## Acceptance Criteria (developer-ready)
 
  - AC-001: Branch `001-modern-powerups-pacman` contains the implemented powerup system and UI changes.
- - AC-002: Automated test suite includes deterministic tests for spawn logic, timer behavior, stacking rules (including multiplier cap), life decrement, and game over flow.
+ - AC-002: Automated test suite includes deterministic tests for spawn logic, timer behavior, stacking rules (including multiplier cap), life decrement, game over flow, and restart from both victory and game over states.
  - AC-003: Manual QA checklist demonstrates SC-002, SC-003, and SC-004 over 20 playthroughs and 1-hour stability run.
  - AC-004: Tests verify lives system (decrement & game over) and invincibility blink interval.
 

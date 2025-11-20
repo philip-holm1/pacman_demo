@@ -31,14 +31,14 @@ Independent Test Criteria: Unit tests pass for level loading and collision; play
 - [ ] T014 [P] Implement `src/pacman/entities/powerup.py` (definition + instance class)
 - [ ] T015 Implement `src/pacman/systems/event_bus.py` lightweight synchronous event dispatcher
 - [ ] T016 Implement `src/pacman/systems/collision.py` for tile-based collision and pellet collection detection
+- [ ] T062 Implement life decrement on ghost collision (extend `collision.py` to detect ghost contact; inactive during InvincibilityBlink)
+- [ ] T063 Add unit test `tests/unit/test_life_decrement.py` verifying lives reduce, not below zero, and ignored during InvincibilityBlink
 - [ ] T017 Implement `src/pacman/systems/game_state.py` aggregate state container (tick_count, paused, references to entities)
 - [ ] T018 Integrate player movement handling in `game.py` with keyboard input abstraction
 - [ ] T019 Add pause/resume handling in `game.py` (P key) freezing tick advancement
 - [ ] T020 Add unit test `tests/unit/test_level_loader.py` for loader correctness (pellet count, dimensions)
 - [ ] T021 [P] Add unit test `tests/unit/test_collision.py` for wall vs pellet detection
 - [ ] T022 Add unit test `tests/unit/test_pause.py` ensuring paused state stops tick increment
-- [ ] T062 Implement life decrement on ghost collision (extend `collision.py` to detect ghost contact)
-- [ ] T063 Add unit test `tests/unit/test_life_decrement.py` verifying lives reduce and not below zero
 
 ## Phase 3: User Story US1 — Start & Play (Priority P1)
 Story Goal: Player can start a local game, control Pacman, collect pellets, and complete the level.
@@ -46,14 +46,14 @@ Independent Test Criteria: Start game → move player → collect all pellets �
 
 ### Tasks
 - [ ] T023 [US1] Implement pellet data structure and integrate pellet removal into collision system (`src/pacman/systems/collision.py`)
+- [ ] T064 [US1] Implement game over screen state (`src/pacman/systems/screens.py`) with restart prompt (R key) (loss path available in MVP)
+- [ ] T065 [US1] Add unit test `tests/unit/test_game_over_restart_flow.py` verifying game over triggers at 0 lives and restart resets state (high score persists)
 - [ ] T024 [P] [US1] Add HUD basic overlay for score and lives (`src/pacman/systems/hud.py`)
 - [ ] T025 [US1] Implement level completion check in `game.py` (when pellet list empty)
 - [ ] T026 [US1] Implement victory screen state (`src/pacman/systems/screens.py`) with restart prompt
 - [ ] T027 [US1] Implement restart handling (R key) resetting GameState
 - [ ] T028 [P] [US1] Add unit test `tests/unit/test_level_completion.py` for pellet exhaustion triggers
-- [ ] T029 [US1] Add integration test `tests/unit/test_restart.py` verifying restart resets score and pellets
-- [ ] T064 [US1] Implement game over screen state (`src/pacman/systems/screens.py`) with restart prompt (R key)
-- [ ] T065 [US1] Add unit test `tests/unit/test_game_over_restart_flow.py` verifying game over triggers at 0 lives and restart resets state
+- [ ] T029 [US1] Add integration test `tests/unit/test_restart_after_victory_and_game_over.py` verifying restart resets score, pellets, and lives from both victory and game over
 
 ## Phase 4: User Story US2 — Powerup Interaction (Priority P1)
 Story Goal: Player collects powerups that modify gameplay with concurrent effects and visible timers.
