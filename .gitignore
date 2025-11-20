@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.manifest
+*.spec
+.pytest_cache/
+.venv/
+venv/
+env/
+.env
+.env.*
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+.cache/
+*.log
+
+# IDE/editor
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test & coverage artifacts
+.coverage*
+coverage/
+
+# Game assets generated
+assets/generated/
+levels/generated/
+data/*.bak
+
+# Misc
+*.tmp
+*.swp
