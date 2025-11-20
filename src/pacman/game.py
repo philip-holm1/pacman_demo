@@ -13,6 +13,7 @@ from .systems.powerup_manager import powerup_manager
 from .systems.scoring import apply_pellet_score, apply_powerup_bonus
 from .systems.highscore import update_high_score, ensure_loaded
 from .systems.hud_feedback import prune_feedback
+from .systems.ghost_ai import update_ghosts
 
 
 def run_placeholder(ticks: int = 5) -> None:
@@ -86,6 +87,9 @@ class FixedTimestepLoop:
                 apply_pellet_score(self.state)
                 update_high_score(self.state)
             powerup_manager.update_powerups(self.state)
+            # Ghost movement only in interactive loop (input handler present)
+            if self.input is not None:
+                update_ghosts(self.state)
             evaluate_state(self.state)
             prune_feedback(self.state)
             if self.state.mode in ("victory", "game_over"):
