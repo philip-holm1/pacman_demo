@@ -10,6 +10,9 @@ from .systems.input import InputHandler
 from .systems.render import render as render_frame
 from .systems.screens import evaluate_state, handle_restart
 from .systems.powerup_manager import powerup_manager
+from .systems.scoring import apply_pellet_score, apply_powerup_bonus
+from .systems.highscore import update_high_score, ensure_loaded
+from .systems.hud_feedback import prune_feedback
 
 
 def run_placeholder(ticks: int = 5) -> None:
@@ -17,6 +20,10 @@ def run_placeholder(ticks: int = 5) -> None:
     level = load_level("levels/level1.json")
     player = Player(x=level.player_spawn["x"], y=level.player_spawn["y"])
     gs = GameState(level=level, player=player, level_source_path="levels/level1.json")
+    # Spawn ghosts from level definition
+    for i, sp in enumerate(level.ghost_spawn_points):
+        gs.ghosts.append(Ghost(id=f"g{i+1}", x=sp.get("x", 0), y=sp.get("y", 0)))
+    ensure_loaded(gs)
     for i in range(ticks):
         gs.tick()
         print(f"tick={i} pellets={len(gs.level.pellet_positions)} lives={gs.player.lives}")
@@ -76,8 +83,13 @@ class FixedTimestepLoop:
             if pellet_consumed:
                 # attempt collect if powerup under player (manager uses level pellet list as placeholder store)
                 powerup_manager.collect_powerup(self.state)
+                apply_pellet_score(self.state)
+                update_high_score(self.state)
             powerup_manager.update_powerups(self.state)
             evaluate_state(self.state)
+            prune_feedback(self.state)
+            if self.state.mode in ("victory", "game_over"):
+                update_high_score(self.state)
         if self.state.tick_count % config.TICKS_PER_SECOND == 0:
             print(f"[loop] seconds={self.state.tick_count // config.TICKS_PER_SECOND} pellets={len(self.state.level.pellet_positions)}")
 
@@ -86,6 +98,9 @@ def run_interactive(max_ticks: int | None = None) -> None:
     level = load_level("levels/level1.json")
     player = Player(x=level.player_spawn["x"], y=level.player_spawn["y"])
     gs = GameState(level=level, player=player, level_source_path="levels/level1.json")
+    for i, sp in enumerate(level.ghost_spawn_points):
+        gs.ghosts.append(Ghost(id=f"g{i+1}", x=sp.get("x", 0), y=sp.get("y", 0)))
+    ensure_loaded(gs)
     ih = InputHandler()
     screen = None
     if ih.available:

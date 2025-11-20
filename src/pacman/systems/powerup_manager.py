@@ -43,8 +43,13 @@ class PowerupManager:
         # For now, treat any pellet position whose coordinates match and which would spawn after threshold as SpeedBoost.
         for i, pos in enumerate(list(gs.level.pellet_positions)):
             if pos["x"] == gs.player.x and pos["y"] == gs.player.y:
-                # Always SpeedBoost for deterministic tests unless stacking multiplier explicitly requested by test adding special tag
-                powerup_type = "SpeedBoost"
+                # Determine forced type flags for tests, else default sequence
+                if getattr(gs, "_force_type", None):
+                    powerup_type = gs._force_type  # type: ignore
+                elif getattr(gs, "_force_multiplier", False):
+                    powerup_type = "ScoreMultiplier"
+                else:
+                    powerup_type = "SpeedBoost"
                 if getattr(gs, "_force_multiplier", False):
                     powerup_type = "ScoreMultiplier"
                 definition = self.definitions[powerup_type]
@@ -80,6 +85,21 @@ class PowerupManager:
         multiplier_instances = [p for p in gs.player.active_powerups if p.type == "ScoreMultiplier"]
         n = len(multiplier_instances)
         gs.player.score_multiplier = min(2 ** n, config.MAX_SCORE_MULTIPLIER) if n else 1
+        # Speed boost effect
+        speed_inst = next((p for p in gs.player.active_powerups if p.type == "SpeedBoost"), None)
+        gs.player.speed_multiplier = 1.5 if speed_inst else 1.0
+        # Ghost freeze effect
+        freeze_inst = next((p for p in gs.player.active_powerups if p.type == "GhostFreeze"), None)
+        for g in gs.ghosts:
+            g.state = "frozen" if freeze_inst else "normal"
+        # Invincibility blink effect - toggle blink every 0.2s (approx every 0.2*TICKS ticks)
+        inv_inst = next((p for p in gs.player.active_powerups if p.type == "InvincibilityBlink"), None)
+        if inv_inst:
+            interval_ticks = max(1, int(0.2 * config.TICKS_PER_SECOND))
+            if gs.tick_count % interval_ticks == 0:
+                gs.player.blink_on = not gs.player.blink_on
+        else:
+            gs.player.blink_on = True
         # spawn threshold check
         if gs.consumed_pellets >= self.next_spawn_at:
             self.spawn_powerup(gs)

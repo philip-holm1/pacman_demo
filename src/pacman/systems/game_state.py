@@ -18,6 +18,9 @@ class GameState:
     level_source_path: Optional[str] = None
     event_bus: EventBus = field(default_factory=EventBus)
     consumed_pellets: int = 0
+    high_score: int = 0
+    high_score_path: Optional[str] = "data/highscore.json"
+    floating_feedback: List[dict] = field(default_factory=list)
 
     def toggle_pause(self) -> None:
         self.paused = not self.paused
@@ -36,6 +39,9 @@ class GameState:
         self.player.score = 0
         self.player.active_powerups.clear()
         self.ghosts.clear()
+        # Respawn ghosts from level spawn points
+        for i, sp in enumerate(self.level.ghost_spawn_points):
+            self.ghosts.append(Ghost(id=f"g{i+1}", x=sp.get("x", 0), y=sp.get("y", 0)))
         self.tick_count = 0
         self.paused = False
         self.mode = "playing"

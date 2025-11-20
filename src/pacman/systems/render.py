@@ -32,6 +32,12 @@ def render(gs: GameState, screen: Any, pygame: Any) -> None:
         pygame.draw.rect(screen, COLORS["ghost"], (g.x * TILE_SIZE + 4, g.y * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8))
     # Mode overlay (simple text)
     font = pygame.font.SysFont(None, 24)
-    status = f"Mode: {gs.mode} Lives: {gs.player.lives} Pellets: {len(gs.level.pellet_positions)}"
+    status = f"Mode:{gs.mode} L:{gs.player.lives} S:{gs.player.score} HS:{gs.high_score} Mult:{gs.player.score_multiplier}"
     txt = font.render(status, True, (255, 255, 255))
     screen.blit(txt, (8, 8))
+    # Floating feedback entries
+    y_offset = 32
+    for fb in gs.floating_feedback[-5:]:
+        t = font.render(fb["text"], True, (255, 255, 0))
+        screen.blit(t, (8, y_offset))
+        y_offset += 16

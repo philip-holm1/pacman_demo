@@ -78,38 +78,38 @@ Independent Test Criteria: Collect each powerup type; observe effect start, time
  - [X] T031 [P] [US2] Implement pellet-threshold spawn logic (every N pellets) inside powerup_manager
  - [X] T032 [US2] Integrate powerup spawn call into main loop after threshold check (`game.py`)
  - [X] T033 [US2] Implement SpeedBoost effect application (player velocity multiplier) inside update_powerups (placeholder multiplier stored)
- - [ ] T034 [US2] Implement GhostFreeze effect (ghost state frozen) inside update_powerups
+ - [X] T034 [US2] Implement GhostFreeze effect (ghost state frozen) inside update_powerups
  - [X] T035 [US2] Implement ScoreMultiplier stacking and duration refresh rules
- - [ ] T036 [US2] Implement InvincibilityBlink effect (ignore ghost collision) with visual indicator
- - [ ] T037 [P] [US2] Implement powerup HUD timers and progress bars (`src/pacman/systems/hud_powerups.py`)
+ - [X] T036 [US2] Implement InvincibilityBlink effect (ignore ghost collision) with visual indicator
+ - [X] T037 [P] [US2] Implement powerup HUD timers and progress bars (`src/pacman/systems/hud_powerups.py`)
  - [X] T038 [US2] Integrate event bus events for collected/expired (`event_bus.py` → used in HUD updates)
  - [X] T039 [US2] Add unit test `tests/unit/test_powerup_spawn_threshold_and_retry.py` (threshold trigger, valid tile, retry cap)
  - [X] T040 [US2] Add unit test `tests/unit/test_powerup_duration_refresh.py` (same-type refresh behavior)
  - [X] T041 [US2] Add unit test `tests/unit/test_score_multiplier_stack.py` (x2 → x4 stacking scenario)
  - [X] T042 [P] [US2] Add unit test `tests/unit/test_powerup_expiry.py` (expires_at_tick removal)
- - [ ] T043 [US2] Add unit test `tests/unit/test_concurrent_powerups.py` (speed + freeze independent)
- - [ ] T066 [US2] Add unit test `tests/unit/test_powerup_spawn_overlap_avoidance.py` (skip after 10 failed placements on occupied tiles)
- - [ ] T067 [US2] Add unit test `tests/unit/test_powerup_timer_accuracy.py` (±0.5s display vs tick-based remaining)
- - [ ] T068 [US2] Add unit test `tests/unit/test_pause_timer_ui_freeze.py` (no visual decrement while paused)
- - [ ] T069 [US2] Add unit test `tests/unit/test_invincibility_blink_interval.py` (blink toggles ~every 0.2s)
- - [ ] T070 [US2] Add unit test `tests/unit/test_ghost_freeze_no_movement.py` (ghost positions unchanged while frozen)
- - [ ] T071 [US2] Add unit test `tests/unit/test_ghost_freeze_no_score_change.py` (score unaffected by freeze alone)
- - [ ] T072 [US2] Add unit test `tests/unit/test_score_multiplier_cap.py` (cap at x8)
+ - [X] T043 [US2] Add unit test `tests/unit/test_concurrent_powerups.py` (speed + freeze independent)
+ - [X] T066 [US2] Add unit test `tests/unit/test_powerup_spawn_overlap_avoidance.py` (skip after 10 failed placements on occupied tiles)
+ - [X] T067 [US2] Add unit test `tests/unit/test_powerup_timer_accuracy.py` (±0.5s display vs tick-based remaining)
+ - [X] T068 [US2] Add unit test `tests/unit/test_pause_timer_ui_freeze.py` (no visual decrement while paused)
+ - [X] T069 [US2] Add unit test `tests/unit/test_invincibility_blink_interval.py` (blink toggles ~every 0.2s)
+ - [X] T070 [US2] Add unit test `tests/unit/test_ghost_freeze_no_movement.py` (ghost positions unchanged while frozen)
+ - [X] T071 [US2] Add unit test `tests/unit/test_ghost_freeze_no_score_change.py` (score unaffected by freeze alone)
+ - [X] T072 [US2] Add unit test `tests/unit/test_score_multiplier_cap.py` (cap at x8)
 
 ## Phase 5: User Story US3 — Score & Feedback (Priority P2)
 Story Goal: Immediate visual/audio feedback for scoring & powerup pickups; scoreboard updates correctly including multipliers.
 Independent Test Criteria: Collect pellet & powerup; see score change, animation, and sound; multiplier affects scoring.
 
 ### Tasks
-- [ ] T044 [US3] Implement scoring system module `src/pacman/systems/scoring.py` (base pellet value, powerup bonuses, multiplier application)
-- [ ] T045 [P] [US3] Add floating text feedback for score changes (`hud.py` or separate `hud_feedback.py`)
-- [ ] T046 [US3] Integrate audio playback for powerup pickup (0.5s sound) `src/pacman/systems/audio.py`
-- [ ] T047 [US3] Integrate retro animation trigger for each powerup pickup (`hud_powerups.py`)
-- [ ] T048 [US3] Add high score load/save functions `src/pacman/systems/highscore.py`
-- [ ] T049 [US3] Integrate high score display in main menu / victory screen
-- [ ] T050 [US3] Add unit test `tests/unit/test_scoring_multiplier.py` verifying multiplier math
-- [ ] T051 [US3] Add unit test `tests/unit/test_highscore_persistence.py` verifying write & read fallback
-- [ ] T052 [US3] Add unit test `tests/unit/test_feedback_visual.py` (animation list appended on score change)
+- [X] T044 [US3] Implement scoring system module `src/pacman/systems/scoring.py` (base pellet value, powerup bonuses, multiplier application)
+- [X] T045 [P] [US3] Add floating text feedback for score changes (`hud.py` or separate `hud_feedback.py`)
+- [X] T046 [US3] Integrate audio playback for powerup pickup (0.5s sound) `src/pacman/systems/audio.py` (stub implementation)
+- [X] T047 [US3] Integrate retro animation trigger for each powerup pickup (`hud_powerups.py`) (placeholder data in feedback list)
+- [X] T048 [US3] Add high score load/save functions `src/pacman/systems/highscore.py`
+- [X] T049 [US3] Integrate high score display in main menu / victory screen
+- [X] T050 [US3] Add unit test `tests/unit/test_scoring_multiplier.py` verifying multiplier math
+- [X] T051 [US3] Add unit test `tests/unit/test_highscore_persistence.py` verifying write & read fallback
+- [X] T052 [US3] Add unit test `tests/unit/test_feedback_visual.py` (animation list appended on score change)
 
 ## Phase 6: Polish & Cross-Cutting
 Goal: Performance tuning, code quality, documentation, and extended stability tests.

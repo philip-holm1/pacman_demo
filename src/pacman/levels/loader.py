@@ -23,12 +23,22 @@ def load_level(path: str) -> Level:
     p = Path(path)
     with p.open("r", encoding="utf-8") as f:
         data: Any = json.load(f)
+    tile_grid = data["tile_grid"]
+    pellet_positions = data.get("pellet_positions")
+    # Auto-generate pellet positions if missing or empty by treating '.' as pellet tiles
+    if not pellet_positions:
+        auto: List[Dict[str, int]] = []
+        for y, row in enumerate(tile_grid):
+            for x, ch in enumerate(row):
+                if ch == ".":
+                    auto.append({"x": x, "y": y})
+        pellet_positions = auto
     return Level(
         id=data["id"],
         width=data["width"],
         height=data["height"],
-        tile_grid=data["tile_grid"],
-        pellet_positions=data.get("pellet_positions", []),
+        tile_grid=tile_grid,
+        pellet_positions=pellet_positions,
         ghost_spawn_points=data.get("ghost_spawn_points", []),
         player_spawn=data.get("player_spawn", {"x": 0, "y": 0}),
     )

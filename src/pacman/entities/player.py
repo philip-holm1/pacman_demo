@@ -13,6 +13,8 @@ class Player:
     score: int = 0
     active_powerups: List["PowerupInstance"] = field(default_factory=list)
     score_multiplier: int = 1
+    speed_multiplier: float = 1.0
+    blink_on: bool = True  # used for InvincibilityBlink visual toggle
 
     def move(self, nx: int, ny: int) -> None:
         self.x = nx
