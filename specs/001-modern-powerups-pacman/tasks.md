@@ -117,6 +117,7 @@ Independent Test Criteria: All unit tests pass; manual playtest shows stable 30â
 
 ### Tasks
 - [ ] T053 Add performance measurement tick counter & simple FPS overlay `src/pacman/systems/perf.py`
+ - [X] T053 Add performance measurement tick counter & simple FPS overlay `src/pacman/systems/perf.py`
 - [ ] T054 [P] Add ruff & black enforcement pre-commit config `.pre-commit-config.yaml`
 - [ ] T055 Refactor any duplicated logic in powerup_manager (spawn & expiry) into helper functions
 - [ ] T056 Add automated smoke script `scripts/run_smoke_playtest.py` moving player randomly for 5 minutes

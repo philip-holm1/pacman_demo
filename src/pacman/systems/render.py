@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Optional
 from .game_state import GameState
+from .perf import PerfTracker
 
 TILE_SIZE = 32
 
@@ -13,7 +14,7 @@ COLORS = {
 }
 
 
-def render(gs: GameState, screen: Any, pygame: Any) -> None:
+def render(gs: GameState, screen: Any, pygame: Any, perf: Optional[PerfTracker] = None) -> None:
     screen.fill(COLORS["bg"])
     # Walls & floor
     for y, row in enumerate(gs.level.tile_grid):
@@ -32,7 +33,10 @@ def render(gs: GameState, screen: Any, pygame: Any) -> None:
         pygame.draw.rect(screen, COLORS["ghost"], (g.x * TILE_SIZE + 4, g.y * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8))
     # Mode overlay (simple text)
     font = pygame.font.SysFont(None, 24)
-    status = f"Mode:{gs.mode} L:{gs.player.lives} S:{gs.player.score} HS:{gs.high_score} Mult:{gs.player.score_multiplier}"
+    fps_info = ""
+    if perf is not None:
+        fps_info = f" FPS:{perf.avg_fps():.1f} Worst:{perf.worst_ms():.1f}ms"
+    status = f"Mode:{gs.mode} L:{gs.player.lives} S:{gs.player.score} HS:{gs.high_score} Mult:{gs.player.score_multiplier}{fps_info}"
     txt = font.render(status, True, (255, 255, 255))
     screen.blit(txt, (8, 8))
     # Floating feedback entries

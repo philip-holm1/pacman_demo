@@ -14,6 +14,7 @@ from .systems.scoring import apply_pellet_score, apply_powerup_bonus
 from .systems.highscore import update_high_score, ensure_loaded
 from .systems.hud_feedback import prune_feedback
 from .systems.ghost_ai import update_ghosts
+from .systems.perf import PerfTracker
 
 
 def run_placeholder(ticks: int = 5) -> None:
@@ -135,16 +136,18 @@ def run_interactive(max_ticks: int | None = None) -> None:
             last = time.perf_counter()
             accumulator = 0.0
             running = True
+            perf = PerfTracker()
             while running and (max_ticks is None or gs.tick_count < max_ticks):
                 now = time.perf_counter()
                 frame = now - last
                 last = now
+                perf.record_frame(frame)
                 accumulator += frame
                 while accumulator >= seconds_per_tick:
                     loop.tick_logic()
                     accumulator -= seconds_per_tick
                 if screen is not None:
-                    render_frame(gs, screen, pygame)
+                    render_frame(gs, screen, pygame, perf=perf)
                     pygame.display.flip()
                 if not loop.running:
                     running = False
