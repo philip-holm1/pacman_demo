@@ -16,6 +16,35 @@ class PowerupManager:
         self.spawn_retry_limit = 10
         self.next_spawn_at = config.POWERUP_PELLET_THRESHOLD
 
+    # --- Helper methods ---
+    def _remaining_ticks(self, inst: PowerupInstance, gs: GameState) -> int:
+        return max(0, inst.expires_at_tick - gs.tick_count)
+
+    def _apply_effects(self, gs: GameState) -> None:
+        # compute score multiplier
+        multiplier_instances = [p for p in gs.player.active_powerups if p.type == "ScoreMultiplier"]
+        n = len(multiplier_instances)
+        gs.player.score_multiplier = min(2 ** n, config.MAX_SCORE_MULTIPLIER) if n else 1
+        speed_inst = next((p for p in gs.player.active_powerups if p.type == "SpeedBoost"), None)
+        gs.player.speed_multiplier = 1.5 if speed_inst else 1.0
+        freeze_inst = next((p for p in gs.player.active_powerups if p.type == "GhostFreeze"), None)
+        for g in gs.ghosts:
+            g.state = "frozen" if freeze_inst else "normal"
+        inv_inst = next((p for p in gs.player.active_powerups if p.type == "InvincibilityBlink"), None)
+        if inv_inst:
+            interval_ticks = max(1, int(0.2 * config.TICKS_PER_SECOND))
+            if gs.tick_count % interval_ticks == 0:
+                gs.player.blink_on = not gs.player.blink_on
+        else:
+            gs.player.blink_on = True
+
+    def _expire_powerups(self, gs: GameState) -> None:
+        before = len(gs.player.active_powerups)
+        gs.player.active_powerups = [p for p in gs.player.active_powerups if p.expires_at_tick > gs.tick_count]
+        expired = before - len(gs.player.active_powerups)
+        if expired:
+            gs.event_bus.emit("PowerupExpired", expired_count=expired, tick=gs.tick_count)
+
     def spawn_powerup(self, gs: GameState, powerup_type: str | None = None) -> Optional[Powerup]:
         if powerup_type is None:
             powerup_type = random.choice(list(POWERUP_TYPES))
@@ -75,32 +104,8 @@ class PowerupManager:
         return None
 
     def update_powerups(self, gs: GameState) -> None:
-        # expiry
-        before = len(gs.player.active_powerups)
-        gs.player.active_powerups = [p for p in gs.player.active_powerups if p.expires_at_tick > gs.tick_count]
-        expired = before - len(gs.player.active_powerups)
-        if expired:
-            gs.event_bus.emit("PowerupExpired", expired_count=expired, tick=gs.tick_count)
-        # compute score multiplier
-        multiplier_instances = [p for p in gs.player.active_powerups if p.type == "ScoreMultiplier"]
-        n = len(multiplier_instances)
-        gs.player.score_multiplier = min(2 ** n, config.MAX_SCORE_MULTIPLIER) if n else 1
-        # Speed boost effect
-        speed_inst = next((p for p in gs.player.active_powerups if p.type == "SpeedBoost"), None)
-        gs.player.speed_multiplier = 1.5 if speed_inst else 1.0
-        # Ghost freeze effect
-        freeze_inst = next((p for p in gs.player.active_powerups if p.type == "GhostFreeze"), None)
-        for g in gs.ghosts:
-            g.state = "frozen" if freeze_inst else "normal"
-        # Invincibility blink effect - toggle blink every 0.2s (approx every 0.2*TICKS ticks)
-        inv_inst = next((p for p in gs.player.active_powerups if p.type == "InvincibilityBlink"), None)
-        if inv_inst:
-            interval_ticks = max(1, int(0.2 * config.TICKS_PER_SECOND))
-            if gs.tick_count % interval_ticks == 0:
-                gs.player.blink_on = not gs.player.blink_on
-        else:
-            gs.player.blink_on = True
-        # spawn threshold check
+        self._expire_powerups(gs)
+        self._apply_effects(gs)
         if gs.consumed_pellets >= self.next_spawn_at:
             self.spawn_powerup(gs)
             self.next_spawn_at += config.POWERUP_PELLET_THRESHOLD

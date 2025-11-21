@@ -25,20 +25,20 @@ Goal: Core structures (entities, level loader, collision utility, event bus) req
 Independent Test Criteria: Unit tests pass for level loading and collision; player moves inside bounds; pause/resume toggles loop state.
 
 ### Tasks
-- [ ] T011 Implement `src/pacman/levels/loader.py` to parse `levels/level1.json` into Level object
-- [ ] T012 Implement `src/pacman/entities/player.py` with position, velocity, direction, lives, score fields
-- [ ] T013 Implement `src/pacman/entities/ghost.py` with position, state enum
-- [ ] T014 [P] Implement `src/pacman/entities/powerup.py` (definition + instance class)
-- [ ] T015 Implement `src/pacman/systems/event_bus.py` lightweight synchronous event dispatcher
-- [ ] T016 Implement `src/pacman/systems/collision.py` for tile-based collision and pellet collection detection
-- [ ] T062 Implement life decrement on ghost collision (extend `collision.py` to detect ghost contact; inactive during InvincibilityBlink)
-- [ ] T063 Add unit test `tests/unit/test_life_decrement.py` verifying lives reduce, not below zero, and ignored during InvincibilityBlink
-- [ ] T017 Implement `src/pacman/systems/game_state.py` aggregate state container (tick_count, paused, references to entities)
-- [ ] T018 Integrate player movement handling in `game.py` with keyboard input abstraction
-- [ ] T019 Add pause/resume handling in `game.py` (P key) freezing tick advancement
-- [ ] T020 Add unit test `tests/unit/test_level_loader.py` for loader correctness (pellet count, dimensions)
-- [ ] T021 [P] Add unit test `tests/unit/test_collision.py` for wall vs pellet detection
-- [ ] T022 Add unit test `tests/unit/test_pause.py` ensuring paused state stops tick increment
+ - [X] T011 Implement `src/pacman/levels/loader.py` to parse `levels/level1.json` into Level object
+ - [X] T012 Implement `src/pacman/entities/player.py` with position, velocity, direction, lives, score fields
+ - [X] T013 Implement `src/pacman/entities/ghost.py` with position, state enum
+ - [X] T014 [P] Implement `src/pacman/entities/powerup.py` (definition + instance class)
+ - [X] T015 Implement `src/pacman/systems/event_bus.py` lightweight synchronous event dispatcher
+ - [X] T016 Implement `src/pacman/systems/collision.py` for tile-based collision and pellet collection detection
+ - [X] T062 Implement life decrement on ghost collision (extend `collision.py` to detect ghost contact; inactive during InvincibilityBlink)
+ - [X] T063 Add unit test `tests/unit/test_life_decrement.py` verifying lives reduce, not below zero, and ignored during InvincibilityBlink
+ - [X] T017 Implement `src/pacman/systems/game_state.py` aggregate state container (tick_count, paused, references to entities)
+ - [X] T018 Integrate player movement handling in `game.py` with keyboard input abstraction
+ - [X] T019 Add pause/resume handling in `game.py` (P key) freezing tick advancement
+ - [X] T020 Add unit test `tests/unit/test_level_loader.py` for loader correctness (pellet count, dimensions)
+ - [X] T021 [P] Add unit test `tests/unit/test_collision.py` for wall vs pellet detection
+ - [X] T022 Add unit test `tests/unit/test_pause.py` ensuring paused state stops tick increment
  - [X] T011 Implement `src/pacman/levels/loader.py` to parse `levels/level1.json` into Level object
  - [X] T012 Implement `src/pacman/entities/player.py` with position, velocity, direction, lives, score fields
  - [X] T013 Implement `src/pacman/entities/ghost.py` with position, state enum
@@ -118,18 +118,18 @@ Independent Test Criteria: All unit tests pass; manual playtest shows stable 30â
 ### Tasks
 - [ ] T053 Add performance measurement tick counter & simple FPS overlay `src/pacman/systems/perf.py`
  - [X] T053 Add performance measurement tick counter & simple FPS overlay `src/pacman/systems/perf.py`
-- [ ] T054 [P] Add ruff & black enforcement pre-commit config `.pre-commit-config.yaml`
-- [ ] T055 Refactor any duplicated logic in powerup_manager (spawn & expiry) into helper functions
-- [ ] T056 Add automated smoke script `scripts/run_smoke_playtest.py` moving player randomly for 5 minutes
-- [ ] T057 Add test `tests/unit/test_pause_powerup_timer.py` verifying timers freeze during pause
-- [ ] T058 Add test `tests/unit/test_invincibility_collision.py` ghost collision ignored during InvincibilityBlink
-- [ ] T059 Update README with powerup rules & controls section
-- [ ] T060 [P] Add docstring coverage check script `scripts/check_docstrings.py`
-- [ ] T061 Final manual QA checklist markdown `specs/001-modern-powerups-pacman/checklists/qa_playtest.md`
-- [ ] T073 Add long-run stability script `scripts/run_stability_test.py` (60-minute randomized movement)
-- [ ] T074 Add performance assertion harness `scripts/verify_performance.py` (parse frame log, enforce thresholds)
-- [ ] T075 Add ghost movement AI system `src/pacman/systems/ghost_ai.py` updating ghosts each tick (deterministic order, respects walls, frozen state)
-- [ ] T076 Add unit test `tests/unit/test_ghost_movement_wall_avoidance.py` verifying ghosts never enter wall tiles and remain static when frozen
+ - [X] T054 [P] Add ruff & black enforcement pre-commit config `.pre-commit-config.yaml`
+ - [X] T055 Refactor any duplicated logic in powerup_manager (spawn & expiry) into helper functions
+ - [X] T056 Add automated smoke script `scripts/run_smoke_playtest.py` moving player randomly for 5 minutes
+ - [X] T057 Add test `tests/unit/test_pause_powerup_timer.py` verifying timers freeze during pause
+ - [X] T058 Add test `tests/unit/test_invincibility_collision.py` ghost collision ignored during InvincibilityBlink
+ - [X] T059 Update README with powerup rules & controls section
+ - [X] T060 [P] Add docstring coverage check script `scripts/check_docstrings.py`
+ - [X] T061 Final manual QA checklist markdown `specs/001-modern-powerups-pacman/checklists/qa_playtest.md`
+ - [X] T073 Add long-run stability script `scripts/run_stability_test.py` (60-minute randomized movement)
+ - [X] T074 Add performance assertion harness `scripts/verify_performance.py` (parse frame log, enforce thresholds)
+ - [X] T075 Add ghost movement AI system `src/pacman/systems/ghost_ai.py` updating ghosts each tick (deterministic order, respects walls, frozen state)
+ - [X] T076 Add unit test `tests/unit/test_ghost_movement_wall_avoidance.py` verifying ghosts never enter wall tiles and remain static when frozen
  - [X] T077 Improve game over logic: block player movement & scoring when mode=game_over; single high score update
  - [X] T078 Add enhanced game over screen overlay with round score and restart prompt + test `tests/unit/test_game_over_freeze.py`
 
