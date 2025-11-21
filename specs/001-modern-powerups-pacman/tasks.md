@@ -130,6 +130,8 @@ Independent Test Criteria: All unit tests pass; manual playtest shows stable 30�
 - [ ] T074 Add performance assertion harness `scripts/verify_performance.py` (parse frame log, enforce thresholds)
 - [ ] T075 Add ghost movement AI system `src/pacman/systems/ghost_ai.py` updating ghosts each tick (deterministic order, respects walls, frozen state)
 - [ ] T076 Add unit test `tests/unit/test_ghost_movement_wall_avoidance.py` verifying ghosts never enter wall tiles and remain static when frozen
+ - [X] T077 Improve game over logic: block player movement & scoring when mode=game_over; single high score update
+ - [X] T078 Add enhanced game over screen overlay with round score and restart prompt + test `tests/unit/test_game_over_freeze.py`
 
 ## Dependencies & Order
 Story Completion Order: US1 (core loop) → US2 (powerup mechanics) → US3 (feedback & scoring polish) → Polish.

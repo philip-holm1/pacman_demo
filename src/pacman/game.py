@@ -75,6 +75,13 @@ class FixedTimestepLoop:
                 self.state.player.last_move_dy = dy
 
         self.state.tick()
+        # Block all interactive updates except restart when not in playing mode
+        if self.state.mode != "playing":
+            # still allow high score update once when entering game over/victory
+            if self.state.mode in ("victory", "game_over"):
+                update_high_score(self.state)
+            return
+
         if not self.state.paused:
             moved = False
             # Determine effective movement interval based on speed multiplier
@@ -100,18 +107,14 @@ class FixedTimestepLoop:
             pellet_consumed = consume_pellet_if_present(self.state.player, self.state.level, self.state)
             apply_ghost_collision(self.state.player, self.state.ghosts)
             if pellet_consumed:
-                # attempt collect if powerup under player (manager uses level pellet list as placeholder store)
                 powerup_manager.collect_powerup(self.state)
                 apply_pellet_score(self.state)
                 update_high_score(self.state)
             powerup_manager.update_powerups(self.state)
-            # Ghost movement only in interactive loop (input handler present)
             if self.input is not None:
                 update_ghosts(self.state)
             evaluate_state(self.state)
             prune_feedback(self.state)
-            if self.state.mode in ("victory", "game_over"):
-                update_high_score(self.state)
         if self.state.tick_count % config.TICKS_PER_SECOND == 0:
             print(f"[loop] seconds={self.state.tick_count // config.TICKS_PER_SECOND} pellets={len(self.state.level.pellet_positions)}")
 
