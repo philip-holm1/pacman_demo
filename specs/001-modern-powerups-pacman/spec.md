@@ -30,6 +30,8 @@
  - Q: Powerup in-world visual placement style? → A: Empty walkable tile (not required to replace pellet); spawns on any valid floor tile excluding walls/ghost positions; pellet counts unaffected. (Supersedes earlier Option B decision.)
  - Q: Ghost movement model? → A: Finite State Machine with three modes — Scatter (navigate toward assigned corner), Chase (pursue player), Frightened (random among valid directions). Deterministic tie-breaks and decision cadence apply.
  - Q: What triggers Frightened mode and how long does it last? → A: Trigger on InvincibilityBlink pickup; lasts for the remaining InvincibilityBlink duration plus 3 seconds after expiry (default; configurable).
+ - Q: Scatter/Chase cycle defaults? → A: Default cycle = 7s Scatter then 20s Chase repeating until Frightened; cycle timer pauses during Frightened and resumes with remaining time.
+ - Q: Pellet threshold spawn algorithm details? → A: Use interval model: first spawn after `POWERUP_PELLET_INTERVAL` pellets (default 30), then every additional interval (30, 60, 90 ...). Threshold counter resets on level restart.
 
 ---
 
@@ -85,6 +87,7 @@ Acceptance Scenarios:
  - **FR-001**: The game MUST support at least four distinct powerup types with deterministic, documented effects: `SpeedBoost`, `GhostFreeze`, `ScoreMultiplier`, and `InvincibilityBlink`.
  - **FR-002**: Each powerup MUST have a configurable duration (default 8 seconds) and a visual timer visible to the player.
  - **FR-003** (Consolidated): Powerups MUST spawn only after configurable pellet-threshold events (e.g., every N pellets eaten) and only on valid, non-blocked tiles. On invalid spawn attempt, retry up to 10 times; if still invalid skip this spawn cycle.
+	 - Clarification: Implement interval-based thresholds: define `POWERUP_PELLET_INTERVAL` (default 30). Maintain a counter of pellets eaten since level start or restart; after incrementing the counter, attempt spawn when `pellets_eaten == POWERUP_PELLET_INTERVAL` OR (`pellets_eaten > 0` AND `pellets_eaten % POWERUP_PELLET_INTERVAL == 0`). The counter resets on any level restart, including victory or game over.
  - **FR-004**: When a powerup is collected, the effect MUST begin immediately and expire automatically after its duration.
  - **FR-005**: Same-type non-`ScoreMultiplier` powerup pickup while active MUST refresh its remaining duration (no effect stacking). Different types run concurrently. Special Case: `ScoreMultiplier` instances stack multiplicatively.
 
@@ -107,6 +110,7 @@ Acceptance Scenarios:
  - **FR-014**: `InvincibilityBlink`: player ignores ghost collisions; sprite blink toggles visibility every 0.2s; default duration 6s configurable; takes precedence over `GhostFreeze` collision effects.
  - **FR-015**: `GhostFreeze`: ghosts cease movement/pathfinding; pellet collection & scoring mechanics remain unaffected; harmful collisions persist unless `InvincibilityBlink` active.
  - **FR-016**: Core loop MUST run at fixed 60 ticks per second; all durations derive from tick counts (acceptable jitter ≤1 tick averaged over any 5s window).
+ - **FR-017**: Powerup spawns on an empty walkable tile (no pellet present). On collection, only the powerup's own effect (and any bonus) applies; pellet counts remain unchanged by spawn or expiry. Spawn algorithm MUST exclude walls, current ghost tiles, and player tile, and avoid overlapping existing pellets unless an explicit override flag is enabled (default: off). Deterministic tests may reference powerup id and spawn tick; no pellet id retention semantics.
  - **FR-018**: Ghost AI MUST implement a three-mode FSM: Scatter, Chase, Frightened.
 	 - Decision cadence: choose direction every 10 ticks (configurable).
 	 - Determinism: Manhattan distance heuristic in Chase; tie-break order Up, Left, Down, Right; avoid immediate reversal unless forced by dead-end or mode switch.
@@ -114,7 +118,7 @@ Acceptance Scenarios:
 	 - Frightened: choose uniformly at random among non-wall directions at intersections; reversals allowed.
 	 - Interactions: `GhostFreeze` halts movement but FSM timers continue; collisions remain harmful unless `InvincibilityBlink` active.
 	 - Mode transitions: On `InvincibilityBlink` pickup, all non-frozen ghosts enter Frightened immediately. Frightened duration equals the remaining `InvincibilityBlink` duration plus an additional 3 seconds (default). All durations derive from ticks at 60 TPS (e.g., 3s = 180 ticks). On Frightened expiry, ghosts exit Frightened and resume the configured scatter/chase cycle deterministically.
- - **FR-017**: Powerup spawns on an empty walkable tile (no pellet present). On collection, only the powerup's own effect (and any bonus) applies; pellet counts remain unchanged by spawn or expiry. Spawn algorithm MUST exclude walls, current ghost tiles, and player tile, and avoid overlapping existing pellets unless an explicit override flag is enabled (default: off). Deterministic tests may reference powerup id and spawn tick; no pellet id retention semantics.
+ 	 - Cycle durations: Default Scatter duration 7 seconds (420 ticks), Chase duration 20 seconds (1200 ticks). Cycle timer pauses during Frightened and resumes with remaining ticks. After each Frightened period, resume Chase if it was active at trigger, otherwise continue current cycle remainder.
 
 ## Key Entities
 

@@ -39,20 +39,6 @@ Independent Test Criteria: Unit tests pass for level loading and collision; play
  - [X] T020 Add unit test `tests/unit/test_level_loader.py` for loader correctness (pellet count, dimensions)
  - [X] T021 [P] Add unit test `tests/unit/test_collision.py` for wall vs pellet detection
  - [X] T022 Add unit test `tests/unit/test_pause.py` ensuring paused state stops tick increment
- - [X] T011 Implement `src/pacman/levels/loader.py` to parse `levels/level1.json` into Level object
- - [X] T012 Implement `src/pacman/entities/player.py` with position, velocity, direction, lives, score fields
- - [X] T013 Implement `src/pacman/entities/ghost.py` with position, state enum
- - [X] T014 [P] Implement `src/pacman/entities/powerup.py` (definition + instance class)
- - [X] T015 Implement `src/pacman/systems/event_bus.py` lightweight synchronous event dispatcher
- - [X] T016 Implement `src/pacman/systems/collision.py` for tile-based collision and pellet collection detection
- - [X] T062 Implement life decrement on ghost collision (extend `collision.py` to detect ghost contact; inactive during InvincibilityBlink)
- - [X] T063 Add unit test `tests/unit/test_life_decrement.py` verifying lives reduce, not below zero, and ignored during InvincibilityBlink
- - [X] T017 Implement `src/pacman/systems/game_state.py` aggregate state container (tick_count, paused, references to entities)
- - [X] T018 Integrate player movement handling in `game.py` with keyboard input abstraction
- - [X] T019 Add pause/resume handling in `game.py` (P key) freezing tick advancement
- - [X] T020 Add unit test `tests/unit/test_level_loader.py` for loader correctness (pellet count, dimensions)
- - [X] T021 [P] Add unit test `tests/unit/test_collision.py` for wall vs pellet detection
- - [X] T022 Add unit test `tests/unit/test_pause.py` ensuring paused state stops tick increment
 
 ## Phase 3: User Story US1 — Start & Play (Priority P1)
 Story Goal: Player can start a local game, control Pacman, collect pellets, and complete the level.
@@ -116,7 +102,6 @@ Goal: Performance tuning, code quality, documentation, and extended stability te
 Independent Test Criteria: All unit tests pass; manual playtest shows stable 30–60 FPS; no crashes in 30 min continuous run.
 
 ### Tasks
-- [ ] T053 Add performance measurement tick counter & simple FPS overlay `src/pacman/systems/perf.py`
  - [X] T053 Add performance measurement tick counter & simple FPS overlay `src/pacman/systems/perf.py`
  - [X] T054 [P] Add ruff & black enforcement pre-commit config `.pre-commit-config.yaml`
  - [X] T055 Refactor any duplicated logic in powerup_manager (spawn & expiry) into helper functions
@@ -132,6 +117,27 @@ Independent Test Criteria: All unit tests pass; manual playtest shows stable 30�
  - [X] T076 Add unit test `tests/unit/test_ghost_movement_wall_avoidance.py` verifying ghosts never enter wall tiles and remain static when frozen
  - [X] T077 Improve game over logic: block player movement & scoring when mode=game_over; single high score update
  - [X] T078 Add enhanced game over screen overlay with round score and restart prompt + test `tests/unit/test_game_over_freeze.py`
+ - [ ] T079 [P] Add ghost FSM & frightened extension constants (`GHOST_DECISION_INTERVAL_TICKS`, `FRIGHTENED_EXTENSION_TICKS`) in `src/pacman/config.py`
+ - [ ] T080 Implement ghost mode fields (scatter/chase/frightened) & timers in `src/pacman/entities/ghost.py`
+ - [ ] T081 Integrate FSM update & decision cadence (every 10 ticks) in `src/pacman/systems/ghost_ai.py`
+ - [ ] T082 Hook InvincibilityBlink collection to trigger frightened + 3s extension in `src/pacman/systems/powerup_manager.py`
+ - [ ] T083 [P] Add tick loop stability test `tests/unit/test_tick_loop_stability.py`
+ - [ ] T084 [P] Add empty-tile spawn invariant test `tests/unit/test_powerup_empty_tile_spawn.py`
+ - [ ] T085 [P] Add ghost FSM modes transition test `tests/unit/test_ghost_fsm_modes.py`
+ - [ ] T086 [P] Add ghost decision cadence determinism test `tests/unit/test_ghost_decision_cadence.py`
+ - [ ] T087 [P] Add frightened extension duration timing test `tests/unit/test_frightened_extension_timing.py`
+ - [ ] T088 [P] Add frightened randomness seeded reproducibility test `tests/unit/test_frightened_randomness_seeded.py`
+ - [ ] T089 [P] Add optional debug HUD ghost mode overlay toggle in `src/pacman/systems/hud.py`
+ - [ ] T090 Update README with ghost FSM and frightened trigger/extension section `README.md`
+ - [ ] T091 [P] Add spec-plan consistency script `scripts/check_spec_plan_consistency.py`
+ - [ ] T092 Extend performance tracker to log tick durations separately `src/pacman/systems/perf.py`
+ - [ ] T093 Refactor powerup spawn selection to deterministic ordered empty floor list `src/pacman/systems/powerup_manager.py`
+ - [ ] T094 [P] Define ghost cycle defaults as constants (`SCATTER_DURATION_TICKS=420`, `CHASE_DURATION_TICKS=1200`) in `src/pacman/config.py`
+ - [ ] T095 Implement scatter/chase cycle timers in `src/pacman/systems/ghost_ai.py` (pause during frightened; resume deterministically)
+ - [ ] T096 [P] Add test `tests/unit/test_ghost_cycle_timing.py` verifying default durations and pause/resume semantics
+ - [ ] T097 [P] Add test `tests/unit/test_ghost_no_immediate_reversal.py` enforcing non-reversal rule except at dead-ends or mode switch
+ - [ ] T098 [P] Add test `tests/unit/test_powerup_spawn_restart_reset.py` verifying pellet counter resets on level restart (victory/game over)
+ - [ ] T099 [P] Add test `tests/unit/test_powerup_spawn_first_interval.py` asserting first spawn occurs exactly at the interval (e.g., 30th pellet)
 
 ## Dependencies & Order
 Story Completion Order: US1 (core loop) → US2 (powerup mechanics) → US3 (feedback & scoring polish) → Polish.
@@ -143,6 +149,7 @@ Foundational must complete before US1 tasks commence (T011–T022). Setup must c
 - US2: T031 (spawn logic) parallel with T033–T034 effect implementations; T037 HUD timers parallel with T035 multiplier logic.
 - US3: T045 floating text and T046 audio integration can proceed in parallel once scoring system skeleton (T044) exists.
 - Polish: T054 tooling parallel with T056 smoke script and T058 invincibility test.
+- Polish (new): T079 constants, T083 tick loop test, T084 empty-tile spawn test parallel. FSM tests (T085–T088) after FSM core (T080–T082). HUD overlay (T089) parallel with README update (T090). Performance tracker (T092) parallel with spawn refactor (T093).
 
 ## Implementation Strategy (MVP First)
 MVP Scope: Complete through US1 (T001–T029). This yields a playable level with movement, pellet collection, victory, and restart. Deliver US2 & US3 incrementally after MVP validation.
@@ -158,8 +165,8 @@ Post-MVP Increment Steps:
 - US1: 9 tasks (T023–T029, T064–T065)
 - US2: 21 tasks (T030–T043, T066–T072)
 - US3: 9 tasks (T044–T052)
-- Polish: 11 tasks (T053–T061, T073–T074)
-Total: 74 tasks
+- Polish: 36 tasks (T053–T061, T073–T078, T079–T099)
+Total: 99 tasks
 
 ## Format Validation
 All tasks follow required format: `- [ ] T### [P]? [US#]? Description with file path`. Non-story phases omit story labels. Parallelizable tasks marked `[P]` only when independent (different files, no unmet dependencies).
@@ -168,7 +175,7 @@ All tasks follow required format: `- [ ] T### [P]? [US#]? Description with file 
 - US1: Start, control, collect pellets, victory triggers, lives decrement on ghost collisions, game over at 0 lives, restart after game over.
 - US2: Collect each powerup; timer & effect concurrency validated; expiry reverts state; spawn threshold & retry; overlap avoidance skip; timer accuracy ±0.5s; blink every ~0.2s; multiplier cap; ghost freeze effects.
 - US3: Score updates with multiplier; audio + animation feedback visible; high score persists (fallback logged on write failure).
-- Polish: Long-run (60 min) stability; performance thresholds (avg FPS ≥30, 95th percentile frame time ≤2× target); pause timer UI freeze.
+- Polish: Long-run (60 min) stability; performance thresholds (avg FPS ≥30, 95th percentile frame time ≤2× target); pause timer UI freeze; tick loop stability; ghost FSM transitions & frightened extension timing; empty-tile spawn invariants.
 
 ## MVP Confirmation
 MVP = US1 core loop plus constitution-critical lives & game over (T062–T065). Parallelizable tasks flagged to accelerate delivery.
