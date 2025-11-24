@@ -6,9 +6,9 @@
 
 ## Summary
 
-Implement a local, deterministic single-player Pacman demo in Python that adds a modern powerup system while preserving the retro feel. Deliverables: runtime implementation of four powerups (`SpeedBoost`, `GhostFreeze`, `ScoreMultiplier`, `InvincibilityBlink`), HUD for active effects/timers, deterministic spawn logic (pellet-threshold driven), local high-score persistence, and a minimal automated test set for core mechanics.
+Implement a local, deterministic single-player Pacman demo in Python that adds a modern powerup system while preserving the retro feel. Deliverables: runtime implementation of four powerups (`SpeedBoost`, `GhostFreeze`, `ScoreMultiplier`, `InvincibilityBlink`), HUD for active effects/timers, deterministic spawn logic (pellet-threshold driven, empty walkable tile placement), local high-score persistence, ghost FSM (Scatter/Chase/Frightened) with InvincibilityBlink-triggered Frightened + 3s extension, and a comprehensive automated test set for core mechanics.
 
-Technical approach: use a lightweight Python game library for rendering and input, small file-based storage for persistence, fixed-timestep game loop (target 60 FPS) for determinism, and pytest for unit tests. Keep the project single-repo, single-package for simplicity and fast iteration.
+Technical approach: use `pygame` for rendering/input/audio, small file-based storage for persistence, a fixed-timestep core loop at 60 ticks per second (FR-016) decoupled from render FPS, and pytest for unit tests. Keep the project single-repo, single-package for simplicity and fast iteration. All temporal mechanics (powerup durations, blink cadence, ghost decision cadence, frightened extension) derive from tick counts for determinism.
 
 ## Technical Context
 
@@ -18,8 +18,8 @@ Technical approach: use a lightweight Python game library for rendering and inpu
 **Testing**: `pytest` for unit tests; focus on deterministic logic (collision, powerup timers, spawn rules). Simple integration script for smoke-test playthroughs.
 **Target Platform**: Desktop platforms (Windows primary for development, also Linux/macOS supported). No network or cloud required (constitution: local-first).
 **Project Type**: Single local game project (library + small runner). Source layout under `src/` with a small CLI/runner at repo root.
-**Performance Goals**: Target stable 60 FPS; accept 30 FPS minimum. Fixed-timestep loop ensures determinism. Frame time logger will record per-tick durations; 95th percentile frame time ≤ 2× target frame time.
-**Constraints**: Offline-first, deterministic tick behavior, minimal asset set, no external services. Game must pause/resume and freeze timers (HUD timers visually stop). Powerups cannot rely on non-deterministic timers. RNG for spawn tile selection seeded once per run (e.g., `random.seed(LEVEL_SEED)`); optional spawn log enables replay.
+**Performance Goals**: Core logic at fixed 60 ticks/sec (FR-016). Rendering aims for ~60 FPS; acceptable degradation to 30 FPS with no impact on tick-driven timers. Performance tracker records tick processing times; 95th percentile tick duration ≤ 2× nominal tick budget. Jitter tolerance: ≤1 tick drift averaged over any 5s window.
+**Constraints**: Offline-first, deterministic tick behavior, minimal asset set, no external services. Game must pause/resume and freeze timers (HUD timers visually stop). Powerups & ghost FSM cannot rely on wall-clock time—only tick counts. RNG for spawn tile selection seeded once per run (e.g., `random.seed(LEVEL_SEED)`); optional spawn log enables replay.
 **Scale/Scope**: Small demo (single level shipped, single-player local). Codebase expected to be <5k LOC initially.
 
 ## Constitution Check
@@ -83,7 +83,7 @@ Phase 0 — Research: choose libraries, finalize deterministic loop strategy, po
 
 Phase 1 — Design: produce `data-model.md`, module contracts under `contracts/`, and `quickstart.md`. Update agent context. Implement minimal `levels/level1.json` and placeholder assets.
 
-Phase 2 — Implementation & Tests: implement game loop, entities, powerup manager, HUD, persistence, and core tests (spawn overlap avoidance & timer accuracy). NOTE: Lives decrement logic is elevated into Foundational; Game Over screen & restart integrated early in US1 to satisfy constitution minimal loop (win + loss paths before powerups).
+Phase 2 — Implementation & Tests: implement game loop (fixed 60 TPS), entities, powerup manager (empty-tile spawn, FR-017 rules), HUD, ghost FSM (FR-018), frightened trigger/extension on InvincibilityBlink, persistence, and core tests (spawn overlap avoidance & timer accuracy, ghost mode transitions, frightened extension timing, decision cadence determinism). NOTE: Lives decrement logic is elevated into Foundational; Game Over screen & restart integrated early in US1 to satisfy constitution minimal loop (win + loss paths before powerups).
 
 ## Complexity Tracking
 
@@ -91,7 +91,32 @@ No constitution violations; no additional complexity justifications required at 
 
 ### Stability & Measurement Addendum
 
-Long-run stability validated via a 60-minute automated movement script (random direction changes at fixed intervals). Performance harness computes average FPS and percentile frame times; failure thresholds trigger test failure. Determinism documented via seed value captured in run log. Timer accuracy and blink cadence tests verify SC-003 and FR-014.
+Long-run stability validated via a 60-minute automated movement script (random direction changes at fixed intervals). Performance harness computes tick processing latency and derived FPS; failure thresholds trigger test failure. Determinism documented via seed value captured in run log. Timer accuracy, blink cadence, ghost decision cadence, frightened extension, and powerup expiry tests verify SC-003, FR-014, FR-016–FR-018.
+
+### Added Functional Requirements Reflected
+
+- FR-016: Fixed 60 ticks/sec loop—update loop module to expose `TICKS_PER_SECOND` constant; tests assert drift bounds.
+- FR-017: Powerups spawn on empty walkable tiles—spawn manager selects from filtered floor set; no pellet mutation; tests confirm pellet counts invariant pre/post uncollected expiry.
+- FR-018: Ghost FSM—implement mode field, timers for scatter/chase cycle (defaults pending), frightened on InvincibilityBlink + 3s extension (tick-based), decision cadence every 10 ticks with deterministic tie-break.
+
+### New Test Additions
+
+- test_tick_loop_stability.py: asserts 60 TPS over simulated 5s window within jitter tolerance.
+- test_powerup_empty_tile_spawn.py: verifies spawn never occupies pellet tile & pellet count unchanged after expiry.
+- test_ghost_fsm_modes.py: transitions scatter→chase, forced frightened trigger, extension timing (remaining + 180 ticks), exit back to cycle.
+- test_ghost_decision_cadence.py: ensures direction changes only on scheduled decision ticks.
+- test_frightened_randomness_seeded.py: with fixed seed, sequence is reproducible; verifies uniform choice distribution over sample window.
+
+### Implementation Tasks (Delta)
+
+1. Introduce `constants.py` or extend existing config with `TICKS_PER_SECOND=60`, `GHOST_DECISION_INTERVAL_TICKS=10`, `FRIGHTENED_EXTENSION_TICKS=180`.
+2. Refactor game loop to separate logic tick from render frame; ensure pause halts tick progression.
+3. Update powerup spawn manager: filter candidate floor tiles; exclude pellets; maintain deterministic candidate list ordering.
+4. Extend ghost entity: add `mode`, `mode_ticks_remaining`; integrate FSM update in tick loop.
+5. Implement frightened trigger hook in powerup collection for InvincibilityBlink; schedule extension ticks.
+6. Add tests listed above; seed RNG in test setup for deterministic assertions.
+7. Update HUD to show ghost modes optionally (debug overlay) for test visibility (toggle flag).
+8. Performance tracker: log tick durations separately from frame durations.
 
 ```
 directories captured above]
