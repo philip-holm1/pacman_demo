@@ -1,7 +1,7 @@
-from src.pacman.entities.ghost import Ghost
-from src.pacman.levels.loader import Level
-from src.pacman.systems.game_state import GameState
-from src.pacman.systems.ghost_ai import update_ghosts
+from pacman.entities.ghost import Ghost
+from pacman.levels.loader import Level
+from pacman.systems.game_state import GameState
+from pacman.systems.ghost_ai import update_ghosts
 
 
 def test_ghost_movement_respects_walls():

@@ -12,6 +12,11 @@ class Level:
     pellet_positions: List[Dict[str, int]]
     ghost_spawn_points: List[Dict[str, int]]
     player_spawn: Dict[str, int]
+    spawned_powerups: List[Dict[str, Any]] = None
+
+    def __post_init__(self):
+        if self.spawned_powerups is None:
+            self.spawned_powerups = []
 
     def is_wall(self, x: int, y: int) -> bool:
         if y < 0 or y >= self.height or x < 0 or x >= self.width:
@@ -41,4 +46,5 @@ def load_level(path: str) -> Level:
         pellet_positions=pellet_positions,
         ghost_spawn_points=data.get("ghost_spawn_points", []),
         player_spawn=data.get("player_spawn", {"x": 0, "y": 0}),
+        spawned_powerups=[],
     )

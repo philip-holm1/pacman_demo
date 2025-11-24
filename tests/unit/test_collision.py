@@ -1,6 +1,6 @@
-from src.pacman.levels.loader import Level
-from src.pacman.entities.player import Player
-from src.pacman.systems.collision import attempt_player_move, consume_pellet_if_present
+from pacman.levels.loader import Level
+from pacman.entities.player import Player
+from pacman.systems.collision import attempt_player_move, consume_pellet_if_present
 
 def make_level():
     return Level(

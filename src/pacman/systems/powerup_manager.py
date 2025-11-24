@@ -3,6 +3,7 @@ from typing import List, Optional
 from .. import config
 from ..entities.powerup import Powerup, PowerupInstance, POWERUP_TYPES
 from .game_state import GameState
+from . import ghost_ai
 
 class PowerupManager:
     def __init__(self, seed: int = 42) -> None:
@@ -15,6 +16,7 @@ class PowerupManager:
         }
         self.spawn_retry_limit = 10
         self.next_spawn_at = config.POWERUP_PELLET_THRESHOLD
+        self._last_spawn_index: int = 0  # T093 deterministic ordered selection
 
     # --- Helper methods ---
     def _remaining_ticks(self, inst: PowerupInstance, gs: GameState) -> int:
@@ -45,42 +47,53 @@ class PowerupManager:
         if expired:
             gs.event_bus.emit("PowerupExpired", expired_count=expired, tick=gs.tick_count)
 
+    def _ordered_floor_candidates(self, gs: GameState) -> list[tuple[int, int]]:
+        tiles: list[tuple[int, int]] = []
+        for y in range(1, gs.level.height - 1):
+            for x in range(1, gs.level.width - 1):
+                if gs.level.is_wall(x, y):
+                    continue
+                if any(p["x"] == x and p["y"] == y for p in gs.level.pellet_positions):
+                    continue
+                if any(p["x"] == x and p["y"] == y for p in gs.level.spawned_powerups):
+                    continue
+                if (gs.player.x == x and gs.player.y == y) or any(g.x == x and g.y == y for g in gs.ghosts):
+                    continue
+                tiles.append((x, y))
+        # Deterministic ordering by row-major (y,x)
+        tiles.sort(key=lambda t: (t[1], t[0]))
+        return tiles
+
     def spawn_powerup(self, gs: GameState, powerup_type: str | None = None) -> Optional[Powerup]:
         if powerup_type is None:
             powerup_type = random.choice(list(POWERUP_TYPES))
         definition = self.definitions[powerup_type]
-        # choose a non-wall tile not occupied by player or ghosts
+        candidates = self._ordered_floor_candidates(gs)
+        if not candidates:
+            return None
+        # Select deterministically cycling through ordered list
         attempts = 0
-        while attempts < self.spawn_retry_limit:
-            x = random.randint(1, gs.level.width - 2)
-            y = random.randint(1, gs.level.height - 2)
-            if gs.level.is_wall(x, y):
-                attempts += 1
-                continue
-            occupied = (gs.player.x == x and gs.player.y == y) or any(g.x == x and g.y == y for g in gs.ghosts)
-            if occupied:
-                attempts += 1
-                continue
-            # place using pellet_positions as placeholder storage (could separate later)
-            gs.level.pellet_positions.append({"x": x, "y": y})  # treat like collectible placeholder
+        while attempts < self.spawn_retry_limit and candidates:
+            idx = self._last_spawn_index % len(candidates)
+            x, y = candidates[idx]
+            self._last_spawn_index += 1
+            # place in spawned_powerups list, not pellet_positions
+            gs.level.spawned_powerups.append({"x": x, "y": y, "type": powerup_type})
             gs.event_bus.emit("PowerupSpawned", powerup_type=powerup_type, x=x, y=y)
             return definition
         return None
 
     def collect_powerup(self, gs: GameState) -> Optional[PowerupInstance]:
-        # Identify a powerup tile stored separately from pellets using a marker list on manager for simplicity.
-        # For now, treat any pellet position whose coordinates match and which would spawn after threshold as SpeedBoost.
-        for i, pos in enumerate(list(gs.level.pellet_positions)):
+        # Check if player is on a spawned powerup tile
+        for i, pos in enumerate(list(gs.level.spawned_powerups)):
             if pos["x"] == gs.player.x and pos["y"] == gs.player.y:
-                # Determine forced type flags for tests, else default sequence
+                # Use stored powerup type, with test override support
                 if getattr(gs, "_force_type", None):
                     powerup_type = gs._force_type  # type: ignore
                 elif getattr(gs, "_force_multiplier", False):
                     powerup_type = "ScoreMultiplier"
                 else:
-                    powerup_type = "SpeedBoost"
-                if getattr(gs, "_force_multiplier", False):
-                    powerup_type = "ScoreMultiplier"
+                    powerup_type = pos.get("type", "SpeedBoost")
                 definition = self.definitions[powerup_type]
                 start = gs.tick_count
                 expires = start + int(definition.duration_seconds * config.TICKS_PER_SECOND)
@@ -97,8 +110,10 @@ class PowerupManager:
                             break
                     if not replaced:
                         gs.player.active_powerups.append(inst)
-                # remove collected pellet/powerup
-                del gs.level.pellet_positions[i]
+                if inst.type == "InvincibilityBlink":
+                    ghost_ai.trigger_frightened(gs)
+                # remove collected powerup
+                del gs.level.spawned_powerups[i]
                 gs.event_bus.emit("PowerupCollected", powerup_type=inst.type, start_tick=start, expires_at_tick=expires)
                 return inst
         return None

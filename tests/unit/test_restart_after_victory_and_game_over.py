@@ -1,8 +1,8 @@
-from src.pacman.levels.loader import load_level, Level
-from src.pacman.entities.player import Player
-from src.pacman.systems.game_state import GameState
-from src.pacman.systems.screens import evaluate_state, handle_restart
-from src.pacman import config
+from pacman.levels.loader import load_level, Level
+from pacman.entities.player import Player
+from pacman.systems.game_state import GameState
+from pacman.systems.screens import evaluate_state, handle_restart
+from pacman import config
 
 def test_restart_from_victory_and_game_over():
     level_path = "levels/level1.json"

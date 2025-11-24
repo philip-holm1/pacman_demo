@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import random
 from typing import List, Optional
 from ..entities.player import Player
 from ..entities.ghost import Ghost
@@ -21,6 +22,13 @@ class GameState:
     high_score: int = 0
     high_score_path: Optional[str] = "data/highscore.json"
     floating_feedback: List[dict] = field(default_factory=list)
+    # Ghost FSM / frightened mode tracking
+    ghost_cycle_mode: str = "scatter"  # scatter | chase
+    ghost_cycle_ticks: int = 0
+    frightened_ticks_remaining: int = 0
+    _underlying_cycle_mode: str = "scatter"
+    _underlying_cycle_ticks_snapshot: int = 0
+    frightened_rng: random.Random = field(default_factory=lambda: random.Random(12345))
 
     def toggle_pause(self) -> None:
         self.paused = not self.paused
@@ -39,10 +47,26 @@ class GameState:
         self.player.score = 0
         self.player.active_powerups.clear()
         self.ghosts.clear()
-        # Respawn ghosts from level spawn points
+        # Respawn ghosts from level spawn points with scatter corners
+        from ..game import assign_scatter_corner
         for i, sp in enumerate(self.level.ghost_spawn_points):
-            self.ghosts.append(Ghost(id=f"g{i+1}", x=sp.get("x", 0), y=sp.get("y", 0)))
+            corner = assign_scatter_corner(i, self.level.width, self.level.height)
+            self.ghosts.append(Ghost(id=f"g{i+1}", x=sp.get("x", 0), y=sp.get("y", 0), scatter_corner=corner))
         self.tick_count = 0
         self.paused = False
         self.mode = "playing"
         self.consumed_pellets = 0
+        self.ghost_cycle_mode = "scatter"
+        self.ghost_cycle_ticks = 0
+        self.frightened_ticks_remaining = 0
+        self._underlying_cycle_mode = "scatter"
+        self._underlying_cycle_ticks_snapshot = 0
+        # Re-seed frightened RNG for reproducible runs after restart
+        self.frightened_rng = random.Random(12345)
+        # Reset powerup manager spawn state
+        from ..systems.powerup_manager import powerup_manager
+        powerup_manager.next_spawn_at = config.POWERUP_PELLET_THRESHOLD
+        powerup_manager._last_spawn_index = 0
+        # Spawn initial powerups on restart
+        from ..game import _spawn_initial_powerups
+        _spawn_initial_powerups(self)

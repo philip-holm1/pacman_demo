@@ -1,7 +1,7 @@
-from src.pacman.levels.loader import Level
-from src.pacman.entities.player import Player
-from src.pacman.systems.game_state import GameState
-from src.pacman.systems.screens import evaluate_state
+from pacman.levels.loader import Level
+from pacman.entities.player import Player
+from pacman.systems.game_state import GameState
+from pacman.systems.screens import evaluate_state
 
 def test_level_completion_triggers_victory():
     lvl = Level(

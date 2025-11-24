@@ -29,6 +29,7 @@
   - position: {x, y}
   - state: enum {normal, frightened, frozen}
   - ai_mode: enum {scatter, chase, random}
+  - (FSM runtime fields in GameState, not per Ghost): cycle_mode (scatter|chase), cycle_ticks, frightened_ticks_remaining
 
 - Level
   - id: string
@@ -45,6 +46,11 @@
   - active_powerups: list[PowerupInstance]
   - tick_count: int
   - paused: bool
+  - ghost_cycle_mode: string (scatter|chase|frightened)
+  - ghost_cycle_ticks: int
+  - frightened_ticks_remaining: int
+  - _underlying_cycle_mode: string (internal snapshot while frightened)
+  - _underlying_cycle_ticks_snapshot: int (internal snapshot while frightened)
 
 ## Validation rules
 - Player position must be within level bounds and not inside a wall tile.

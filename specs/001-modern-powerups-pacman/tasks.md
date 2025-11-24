@@ -117,27 +117,27 @@ Independent Test Criteria: All unit tests pass; manual playtest shows stable 30�
  - [X] T076 Add unit test `tests/unit/test_ghost_movement_wall_avoidance.py` verifying ghosts never enter wall tiles and remain static when frozen
  - [X] T077 Improve game over logic: block player movement & scoring when mode=game_over; single high score update
  - [X] T078 Add enhanced game over screen overlay with round score and restart prompt + test `tests/unit/test_game_over_freeze.py`
- - [ ] T079 [P] Add ghost FSM & frightened extension constants (`GHOST_DECISION_INTERVAL_TICKS`, `FRIGHTENED_EXTENSION_TICKS`) in `src/pacman/config.py`
- - [ ] T080 Implement ghost mode fields (scatter/chase/frightened) & timers in `src/pacman/entities/ghost.py`
- - [ ] T081 Integrate FSM update & decision cadence (every 10 ticks) in `src/pacman/systems/ghost_ai.py`
- - [ ] T082 Hook InvincibilityBlink collection to trigger frightened + 3s extension in `src/pacman/systems/powerup_manager.py`
- - [ ] T083 [P] Add tick loop stability test `tests/unit/test_tick_loop_stability.py`
- - [ ] T084 [P] Add empty-tile spawn invariant test `tests/unit/test_powerup_empty_tile_spawn.py`
- - [ ] T085 [P] Add ghost FSM modes transition test `tests/unit/test_ghost_fsm_modes.py`
- - [ ] T086 [P] Add ghost decision cadence determinism test `tests/unit/test_ghost_decision_cadence.py`
- - [ ] T087 [P] Add frightened extension duration timing test `tests/unit/test_frightened_extension_timing.py`
- - [ ] T088 [P] Add frightened randomness seeded reproducibility test `tests/unit/test_frightened_randomness_seeded.py`
- - [ ] T089 [P] Add optional debug HUD ghost mode overlay toggle in `src/pacman/systems/hud.py`
- - [ ] T090 Update README with ghost FSM and frightened trigger/extension section `README.md`
- - [ ] T091 [P] Add spec-plan consistency script `scripts/check_spec_plan_consistency.py`
- - [ ] T092 Extend performance tracker to log tick durations separately `src/pacman/systems/perf.py`
- - [ ] T093 Refactor powerup spawn selection to deterministic ordered empty floor list `src/pacman/systems/powerup_manager.py`
- - [ ] T094 [P] Define ghost cycle defaults as constants (`SCATTER_DURATION_TICKS=420`, `CHASE_DURATION_TICKS=1200`) in `src/pacman/config.py`
- - [ ] T095 Implement scatter/chase cycle timers in `src/pacman/systems/ghost_ai.py` (pause during frightened; resume deterministically)
- - [ ] T096 [P] Add test `tests/unit/test_ghost_cycle_timing.py` verifying default durations and pause/resume semantics
- - [ ] T097 [P] Add test `tests/unit/test_ghost_no_immediate_reversal.py` enforcing non-reversal rule except at dead-ends or mode switch
- - [ ] T098 [P] Add test `tests/unit/test_powerup_spawn_restart_reset.py` verifying pellet counter resets on level restart (victory/game over)
- - [ ] T099 [P] Add test `tests/unit/test_powerup_spawn_first_interval.py` asserting first spawn occurs exactly at the interval (e.g., 30th pellet)
+ - [X] T079 [P] Add ghost FSM & frightened extension constants (`GHOST_DECISION_INTERVAL_TICKS`, `FRIGHTENED_EXTENSION_TICKS`) in `src/pacman/config.py`
+ - [X] T080 Implement ghost mode fields (scatter/chase/frightened) & timers in `src/pacman/entities/ghost.py` (implemented via GameState fields)
+ - [X] T081 Integrate FSM update & decision cadence (every 10 ticks) in `src/pacman/systems/ghost_ai.py`
+ - [X] T082 Hook InvincibilityBlink collection to trigger frightened + 3s extension in `src/pacman/systems/powerup_manager.py`
+ - [X] T083 [P] Add tick loop stability test `tests/unit/test_tick_loop_stability.py`
+ - [X] T084 [P] Add empty-tile spawn invariant test `tests/unit/test_powerup_empty_tile_spawn.py`
+ - [X] T085 [P] Add ghost FSM modes transition test `tests/unit/test_ghost_fsm_modes.py`
+ - [X] T086 [P] Add ghost decision cadence determinism test `tests/unit/test_ghost_decision_cadence.py`
+ - [X] T087 [P] Add frightened extension duration timing test `tests/unit/test_frightened_extension_timing.py`
+ - [X] T088 [P] Add frightened randomness seeded reproducibility test `tests/unit/test_frightened_randomness_seeded.py`
+ - [X] T089 [P] Add optional debug HUD ghost mode overlay toggle in `src/pacman/systems/hud.py`
+ - [X] T090 Update README with ghost FSM and frightened trigger/extension section `README.md`
+ - [X] T091 [P] Add spec-plan consistency script `scripts/check_spec_plan_consistency.py`
+ - [X] T092 Extend performance tracker to log tick durations separately `src/pacman/systems/perf.py`
+ - [X] T093 Refactor powerup spawn selection to deterministic ordered empty floor list `src/pacman/systems/powerup_manager.py`
+ - [X] T094 [P] Define ghost cycle defaults as constants (`SCATTER_DURATION_TICKS=420`, `CHASE_DURATION_TICKS=1200`) in `src/pacman/config.py`
+ - [X] T095 Implement scatter/chase cycle timers in `src/pacman/systems/ghost_ai.py` (pause during frightened; resume deterministically)
+ - [X] T096 [P] Add test `tests/unit/test_ghost_cycle_timing.py` verifying default durations and pause/resume semantics
+ - [X] T097 [P] Add test `tests/unit/test_ghost_no_immediate_reversal.py` enforcing non-reversal rule except at dead-ends or mode switch
+ - [X] T098 [P] Add test `tests/unit/test_powerup_spawn_restart_reset.py` verifying pellet counter resets on level restart (victory/game over)
+ - [X] T099 [P] Add test `tests/unit/test_powerup_spawn_first_interval.py` asserting first spawn occurs exactly at the interval (e.g., 30th pellet)
 
 ## Dependencies & Order
 Story Completion Order: US1 (core loop) → US2 (powerup mechanics) → US3 (feedback & scoring polish) → Polish.

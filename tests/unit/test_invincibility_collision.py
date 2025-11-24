@@ -1,8 +1,8 @@
-from src.pacman.entities.player import Player
-from src.pacman.entities.ghost import Ghost
-from src.pacman.systems.game_state import GameState
-from src.pacman.entities.powerup import PowerupInstance
-from src.pacman.systems.collision import apply_ghost_collision
+from pacman.entities.player import Player
+from pacman.entities.ghost import Ghost
+from pacman.systems.game_state import GameState
+from pacman.entities.powerup import PowerupInstance
+from pacman.systems.collision import apply_ghost_collision
 
 
 def test_invincibility_blocks_ghost_collision():

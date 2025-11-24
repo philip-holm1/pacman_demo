@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
-from src.pacman.levels.loader import load_level
-from src.pacman.entities.player import Player
-from src.pacman.systems.game_state import GameState
-from src.pacman.systems.screens import evaluate_state, handle_restart
-from src.pacman import config
+from pacman.levels.loader import load_level
+from pacman.entities.player import Player
+from pacman.systems.game_state import GameState
+from pacman.systems.screens import evaluate_state, handle_restart
+from pacman import config
 
 
 def test_game_over_and_restart_resets_state_and_preserves_highscore(tmp_path, monkeypatch):

@@ -1,7 +1,7 @@
-from src.pacman.levels.loader import Level
-from src.pacman.entities.player import Player
-from src.pacman.systems.game_state import GameState
-from src.pacman.game import FixedTimestepLoop
+from pacman.levels.loader import Level
+from pacman.entities.player import Player
+from pacman.systems.game_state import GameState
+from pacman.game import FixedTimestepLoop
 
 
 class DummyInput:
@@ -11,7 +11,7 @@ class DummyInput:
         self.available = False
 
     def poll(self):  # mimic InputHandler.poll
-        from src.pacman.systems.input import InputSample
+        from pacman.systems.input import InputSample
         return InputSample(move_dx=self._move_dx, move_dy=self._move_dy)
 
 

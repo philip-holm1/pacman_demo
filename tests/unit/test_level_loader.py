@@ -1,4 +1,4 @@
-from src.pacman.levels.loader import load_level
+from pacman.levels.loader import load_level
 
 def test_level_loader_basic():
     level = load_level("levels/level1.json")

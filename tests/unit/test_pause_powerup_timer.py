@@ -1,7 +1,7 @@
-from src.pacman.entities.player import Player
-from src.pacman.systems.game_state import GameState
-from src.pacman.entities.powerup import PowerupInstance
-from src.pacman import config
+from pacman.entities.player import Player
+from pacman.systems.game_state import GameState
+from pacman.entities.powerup import PowerupInstance
+from pacman import config
 
 def test_powerup_timer_freezes_on_pause():
     player = Player()

@@ -1,7 +1,7 @@
-from src.pacman.entities.player import Player
-from src.pacman.entities.ghost import Ghost
-from src.pacman.entities.powerup import PowerupInstance
-from src.pacman.systems.collision import apply_ghost_collision
+from pacman.entities.player import Player
+from pacman.entities.ghost import Ghost
+from pacman.entities.powerup import PowerupInstance
+from pacman.systems.collision import apply_ghost_collision
 
 def test_life_decrement_on_ghost_collision():
     player = Player(lives=3, x=1, y=1)

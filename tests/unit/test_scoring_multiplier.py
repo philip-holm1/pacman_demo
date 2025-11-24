@@ -1,9 +1,9 @@
-from src.pacman.systems.game_state import GameState
-from src.pacman.levels.loader import load_level
-from src.pacman.entities.player import Player
-from src.pacman.systems.powerup_manager import powerup_manager
-from src.pacman.systems.scoring import apply_pellet_score
-from src.pacman import config
+from pacman.systems.game_state import GameState
+from pacman.levels.loader import load_level
+from pacman.entities.player import Player
+from pacman.systems.powerup_manager import powerup_manager
+from pacman.systems.scoring import apply_pellet_score
+from pacman import config
 
 def test_scoring_multiplier_math():
     lvl = load_level("levels/level1.json")
@@ -11,7 +11,7 @@ def test_scoring_multiplier_math():
     # Collect two multiplier powerups
     gs._force_multiplier = True
     for _ in range(2):
-        gs.level.pellet_positions.append({"x": gs.player.x, "y": gs.player.y})
+        gs.level.spawned_powerups.append({"x": gs.player.x, "y": gs.player.y, "type": "ScoreMultiplier"})
         powerup_manager.collect_powerup(gs)
     powerup_manager.update_powerups(gs)
     assert gs.player.score_multiplier == 4

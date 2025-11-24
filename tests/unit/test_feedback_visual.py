@@ -1,7 +1,7 @@
-from src.pacman.systems.game_state import GameState
-from src.pacman.levels.loader import load_level
-from src.pacman.entities.player import Player
-from src.pacman.systems.scoring import apply_pellet_score
+from pacman.systems.game_state import GameState
+from pacman.levels.loader import load_level
+from pacman.entities.player import Player
+from pacman.systems.scoring import apply_pellet_score
 
 def test_feedback_visual_on_score_change():
     lvl = load_level("levels/level1.json")
