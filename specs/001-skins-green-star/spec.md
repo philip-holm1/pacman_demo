@@ -85,28 +85,21 @@ The themed visuals remain readable and do not impair gameplay clarity (e.g., col
 
 ### Measurable Outcomes
 
-- **SC-001**: Users can enable the "Green Star" skin and start playing within 10 seconds from settings to gameplay.
-- **SC-002**: With the "Green Star" skin active, 95% of frames render without noticeable visual artifacts or stutter during a 2-minute session.
-- **SC-003**: 90% of test players correctly identify frightened ghost state and invincibility feedback within 5 seconds when using the skin.
-- **SC-004**: 100% of sessions retain the selected skin after restart when changed via settings.
+ - **SC-005**: Performance target met: average FPS ≥ 58 and ≥95% of frames render under 16.7ms over a continuous 2-minute session with the skin enabled.
 
 ## Assumptions
-
-- Skins affect only visual assets and simple visual effects; no changes to physics or AI.
-- A single global skin selection applies to all categories; per-category overrides are out of scope for this feature.
+ - Determinism preserved: collision boxes, update order, timing, and scoring remain unchanged under all skins.
 - The "Green Star" theme will include clearly distinguishable variants for special states (e.g., frightened) using color/brightness/outline changes.
 
 ## Clarifications
 
 ### Session 2025-12-02
-
+2. **Given** ghosts enter frightened mode, **When** they are themed, **Then** their frightened state remains visually distinct from normal (e.g., color shift to cyan plus a 2px white outline; contrast ratio ≥ 4.5:1 against maze walls).
  - Q: Define themed visuals per category (ghosts/powerups/pellets)? → A: Ghosts as comet tails, powerups as star shards, pellets as stardust dots
  - Q: Define asset resolution and format constraints? → A: PNG spritesheets, 1x/2x (64px base), max 2048x2048
 
-Applied updates:
-- Functional Requirements updated to specify selection occurs in main menu and applies on next start of gameplay.
-- Interaction & UX Flow updated: Main menu includes Settings; inside Settings, a Skin selector with preview thumbnails (Default, Green Star).
-- Themed visuals explicitly defined for each category.
+ - Functional Requirements updated to specify selection occurs in main menu and applies on next start of gameplay.
+ - Interaction & UX Flow updated: Main menu includes Settings; inside Settings, a Skin selector with preview thumbnails (Default, Green Star).
 - Asset constraints specified for format and resolutions.
 - Functional Requirements updated to specify selection occurs in main menu and applies on next start of gameplay.
 - Interaction & UX Flow updated: Main menu includes Settings; inside Settings, a Skin selector with preview thumbnails (Default, Green Star).
