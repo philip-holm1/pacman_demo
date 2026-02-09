@@ -20,12 +20,20 @@
 
 - Refresh classic gameplay with new powerup mechanics and pick-ups that feel modern but retro-styled.
 
-- **FR-003**: Powerups MUST spawn only after certain events (e.g., after collecting a set number of pellets per level; event threshold configurable) and only on valid, non-blocked tiles. If spawn location is invalid, retry up to 10 times; skip spawn if still invalid.
 
 - Q: Should different powerups run concurrently, replace the active effect, or queue? → A: Option A — Different powerups run concurrently; collecting the same powerup refreshes its duration (no stacking).
 
-- **FR-007**: Each powerup pickup MUST trigger a 0.5s retro animation and sound, distinct for each powerup type.
 ### User Story 1 — Start & Play (Priority: P1)
+### Session 2025-11-21
+
+- Q: Core engine tick rate? → A: 60 ticks per second fixed.
+ - Q: Powerup in-world visual placement style? → A: Empty walkable tile (not required to replace pellet); spawns on any valid floor tile excluding walls/ghost positions; pellet counts unaffected. (Supersedes earlier Option B decision.)
+ - Q: Ghost movement model? → A: Finite State Machine with three modes — Scatter (navigate toward assigned corner), Chase (pursue player), Frightened (random among valid directions). Deterministic tie-breaks and decision cadence apply.
+ - Q: What triggers Frightened mode and how long does it last? → A: Trigger on InvincibilityBlink pickup; lasts for the remaining InvincibilityBlink duration plus 3 seconds after expiry (default; configurable).
+ - Q: Scatter/Chase cycle defaults? → A: Default cycle = 7s Scatter then 20s Chase repeating until Frightened; cycle timer pauses during Frightened and resumes with remaining time.
+ - Q: Pellet threshold spawn algorithm details? → A: Use interval model: first spawn after `POWERUP_PELLET_INTERVAL` pellets (default 30), then every additional interval (30, 60, 90 ...). Threshold counter resets on level restart.
+
+---
 
 As a player, I can start a local game, control Pacman, collect pellets and powerups, and complete a level.
 
@@ -76,39 +84,56 @@ Acceptance Scenarios:
 
 ### Powerup System
 
-- **FR-001**: The game MUST support at least four distinct powerup types with deterministic, documented effects: `SpeedBoost`, `GhostFreeze`, `ScoreMultiplier`, and `InvincibilityBlink`.
-- **FR-002**: Each powerup MUST have a configurable duration (default 8 seconds) and a visual timer visible to the player.
-- **FR-003**: Powerups MUST spawn at predictable intervals (configurable) and only on valid, non-blocked tiles.
-- **FR-004**: When a powerup is collected, the effect MUST begin immediately and expire automatically after its duration.
-- **FR-005**: The system MUST define stacking rules: collecting the same powerup while active MUST refresh duration (not stack). Different powerup types MUST run concurrently.
+ - **FR-001**: The game MUST support at least four distinct powerup types with deterministic, documented effects: `SpeedBoost`, `GhostFreeze`, `ScoreMultiplier`, and `InvincibilityBlink`.
+ - **FR-002**: Each powerup MUST have a configurable duration (default 8 seconds) and a visual timer visible to the player.
+ - **FR-003** (Consolidated): Powerups MUST spawn only after configurable pellet-threshold events (e.g., every N pellets eaten) and only on valid, non-blocked tiles. On invalid spawn attempt, retry up to 10 times; if still invalid skip this spawn cycle.
+	 - Clarification: Implement interval-based thresholds: define `POWERUP_PELLET_INTERVAL` (default 30). Maintain a counter of pellets eaten since level start or restart; after incrementing the counter, attempt spawn when `pellets_eaten == POWERUP_PELLET_INTERVAL` OR (`pellets_eaten > 0` AND `pellets_eaten % POWERUP_PELLET_INTERVAL == 0`). The counter resets on any level restart, including victory or game over.
+ - **FR-004**: When a powerup is collected, the effect MUST begin immediately and expire automatically after its duration.
+ - **FR-005**: Same-type non-`ScoreMultiplier` powerup pickup while active MUST refresh its remaining duration (no effect stacking). Different types run concurrently. Special Case: `ScoreMultiplier` instances stack multiplicatively.
 
 ### Gameplay & UX
 
-- **FR-006**: UI MUST present an unobtrusive HUD element showing active powerups and remaining time.
-- **FR-007**: There MUST be distinct visual and audio feedback for each powerup pickup (retro-styled effects).
-- **FR-008**: Pause/Resume MUST pause powerup timers and effects.
+ - **FR-006**: UI MUST present an unobtrusive HUD element showing active powerups and remaining time.
+ - **FR-007**: There MUST be distinct visual and audio feedback for each powerup pickup (retro-styled effects) with 0.5s animation & sound.
+ - **FR-008**: Pause/Resume MUST pause powerup timers and effects; HUD timers MUST visibly freeze (no progress change while paused).
 
 ### Score & Persistence
 
-- **FR-009**: Score calculation MUST account for active `ScoreMultiplier` powerups deterministically. If a player collects another ScoreMultiplier while one is active, the multipliers stack (e.g., x2 → x4) and durations run independently.
-- **FR-010**: High score MUST be stored locally on device (simple local persistence) and displayable from the main menu.
+ - **FR-009**: Score calculation MUST account for active `ScoreMultiplier` powerups deterministically. Stacking formula: total multiplier = 2^(active_instances), capped at x8; independent durations; expiry reduces instance count.
+ - **FR-010**: High score MUST be stored locally on device (simple local persistence) and displayable from the main menu. On write failure, session continues with volatile high score and logs warning.
 
 ### Testing & Stability
 
-- **FR-011**: The game MUST not deadlock or crash if a powerup spawns and a ghost/actor overlaps — spawning must avoid collisions.
+ - **FR-011**: The game MUST not deadlock or crash if a powerup spawns and a ghost/actor overlaps — spawning must avoid collisions. After 10 failed placement attempts skip the spawn without blocking the loop.
+ - **FR-012**: Lives system: player starts with 3 configurable lives; collision with a ghost (when not invincible) decrements lives; at 0 lives trigger Game Over state with restart prompt.
+ - **FR-013**: Game Over state MUST display final score and offer restart (R key) returning to initial level state (pellets & lives reset, high score preserved).
+ - **FR-014**: `InvincibilityBlink`: player ignores ghost collisions; sprite blink toggles visibility every 0.2s; default duration 6s configurable; takes precedence over `GhostFreeze` collision effects.
+ - **FR-015**: `GhostFreeze`: ghosts cease movement/pathfinding; pellet collection & scoring mechanics remain unaffected; harmful collisions persist unless `InvincibilityBlink` active.
+ - **FR-016**: Core loop MUST run at fixed 60 ticks per second; all durations derive from tick counts (acceptable jitter ≤1 tick averaged over any 5s window).
+ - **FR-017**: Powerup spawns on an empty walkable tile (no pellet present). On collection, only the powerup's own effect (and any bonus) applies; pellet counts remain unchanged by spawn or expiry. Spawn algorithm MUST exclude walls, current ghost tiles, and player tile, and avoid overlapping existing pellets unless an explicit override flag is enabled (default: off). Deterministic tests may reference powerup id and spawn tick; no pellet id retention semantics.
+ - **FR-018**: Ghost AI MUST implement a three-mode FSM: Scatter, Chase, Frightened.
+	 - Decision cadence: choose direction every 10 ticks (configurable).
+	 - Determinism: Manhattan distance heuristic in Chase; tie-break order Up, Left, Down, Right; avoid immediate reversal unless forced by dead-end or mode switch.
+	 - Scatter: target ghost-specific corner tile; use same path selection rules.
+	 - Frightened: choose uniformly at random among non-wall directions at intersections; reversals allowed.
+	 - Interactions: `GhostFreeze` halts movement but FSM timers continue; collisions remain harmful unless `InvincibilityBlink` active.
+	 - Mode transitions: On `InvincibilityBlink` pickup, all non-frozen ghosts enter Frightened immediately. Frightened duration equals the remaining `InvincibilityBlink` duration plus an additional 3 seconds (default). All durations derive from ticks at 60 TPS (e.g., 3s = 180 ticks). On Frightened expiry, ghosts exit Frightened and resume the configured scatter/chase cycle deterministically.
+ 	 - Cycle durations: Default Scatter duration 7 seconds (420 ticks), Chase duration 20 seconds (1200 ticks). Cycle timer pauses during Frightened and resumes with remaining ticks. After each Frightened period, resume Chase if it was active at trigger, otherwise continue current cycle remainder.
 
 ## Key Entities
 
-- **Player**: position, velocity, current active powerups (list), score.
-- **Powerup**: id, type, spawnLocation, durationSeconds, value (score bonus if any), visualAssetRef.
-- **Ghost**: position, state (normal, frightened, frozen), pathfinding mode.
-- **Level**: tile grid, pellet locations, powerup spawn points, ghost spawn points.
+ - **Player**: id, position, velocity, direction, current active powerups (list), lives, score.
+ - **Powerup**: id, type, spawnLocation, durationSeconds, value (score bonus if any), visualAssetRef, expiresAtTick.
+ - **Ghost**: id, position, status (normal, frozen), mode (scatter | chase | frightened), pathfinding/timers.
+ - **Pellet**: id, position, collectedFlag.
+ - **Level**: tile grid, pellet locations, powerup spawn points, ghost spawn points.
 
 ## Success Criteria *(measurable & verifiable)*
 
 - **SC-001**: A new local player can start and complete a level within 10 seconds of launching the game on a supported device (first-play latency: <10s to start).
 - **SC-002**: All four powerup types are collectible and produce the documented effect 100% of the time in 20 representative playthrough tests.
-- **SC-003**: Powerup visual timers accurately reflect remaining time within ±0.5s for durations up to 20s in 20 tests.
+ - **SC-003** (Revised): Powerup visual timers accuracy: displayed remaining time deviates ≤0.5s from tick-based remaining duration (error ≤ TICKS_PER_SECOND * 0.5 ticks) across 20 tests (including pause scenarios).
+ - **SC-006**: Life decrement & game over trigger reliably when lives reach zero across 10 simulated collision sequences.
 - **SC-004**: Game does not crash or hang during 1 hour of continuous automated gameplay with randomized spawns.
 - **SC-005**: Local high score persists across application restarts in 5 consecutive runs.
 
@@ -117,6 +142,7 @@ Acceptance Scenarios:
 - Single-player local experience only: no online sync or multiplayer.
 - Platform details (desktop vs mobile) are not required for this spec; UI and control mapping are expected to be adapted later.
 - Art and sound assets will be provided in retro style; placeholder assets allowed for development.
+ - Fixed timestep engine at 60 ticks/sec; logic correctness and timers rely on tick counts, not rendered frame rate.
 
 ## Out of Scope
 
@@ -129,9 +155,10 @@ Acceptance Scenarios:
 
 ## Acceptance Criteria (developer-ready)
 
-- AC-001: Branch `001-modern-powerups-pacman` contains the implemented powerup system and UI changes.
-- AC-002: Automated test suite includes deterministic tests for spawn logic and timer behavior for the four powerups.
-- AC-003: Manual QA checklist demonstrates SC-002 and SC-003 over 20 playthroughs.
+ - AC-001: Branch `001-modern-powerups-pacman` contains the implemented powerup system and UI changes.
+ - AC-002: Automated test suite includes deterministic tests for spawn logic, timer behavior, stacking rules (including multiplier cap), life decrement, game over flow, and restart from both victory and game over states.
+ - AC-003: Manual QA checklist demonstrates SC-002, SC-003, and SC-004 over 20 playthroughs and 1-hour stability run.
+ - AC-004: Tests verify lives system (decrement & game over) and invincibility blink interval.
 
 ## Notes and Next Steps
 
