@@ -81,7 +81,7 @@ The system ensures that randomly generated maps maintain fairness and appropriat
 ### Functional Requirements
 
 - **FR-001**: System MUST generate valid map layouts with structured wall configurations on demand
-- **FR-002**: System MUST ensure every generated map contains all required game elements: traversable corridors, pellet placement areas, ghost spawn points, and Pac-Man spawn point
+- **FR-002**: System MUST ensure every generated map contains all required game elements: traversable corridors, pellet placement areas, ghost spawn points (minimum 2, maximum 4 configurable), and Pac-Man spawn point
 - **FR-003**: System MUST enforce connectivity constraints so all pellets are reachable by Pac-Man from the spawn location
 - **FR-004**: System MUST prevent invalid wall configurations that would trap Pac-Man or ghosts (e.g., unreachable areas, permanent dead ends without exit)
 - **FR-005**: System MUST support configuration parameters for map generation including map size (small/medium/large), wall density (sparse to dense), and pellet distribution (sparse to dense)
@@ -93,7 +93,8 @@ The system ensures that randomly generated maps maintain fairness and appropriat
 - **FR-010**: System MUST define victory condition as a percentage of initial pellets on the map (default 100%), and allow this percentage to be configured per game mode or map generation parameters
 - **FR-011**: System MUST implement generation-failure handling: if generation exceeds 3 seconds or cannot satisfy core constraints, the generator MUST retry with simplified parameters; on persistent failure, the system MUST fall back to a vetted hand-crafted level and notify the player of the fallback
 - **FR-012**: System MUST present players with an explicit menu choice between "Random Map" and "Standard Map" when starting a new game; selecting "Standard Map" loads a hand-crafted map from the existing map pool
-- **FR-013**: System MUST display a title/splash screen on launch before presenting the main menu; splash screen remains visible until player presses Enter or Space key to proceed to main menu
+- **FR-014**: System MUST support configurable ghost spawn count per map (minimum 2, maximum 4 ghosts); if insufficient space to place configured spawn count, the system MUST reduce count and attempt placement again, with a fallback minimum of 2 configured spawns
+- **FR-014**: System MUST support configurable ghost spawn count per map (minimum 2, maximum 4 ghosts); if insufficient space to place configured spawn count, the system MUST reduce count and attempt placement again, with a fallback minimum of 2 configured spawns
 
 ### Key Entities
 
@@ -114,7 +115,7 @@ The system ensures that randomly generated maps maintain fairness and appropriat
 - **SC-001**: Players can start a new game and receive a playable randomly generated map within 2 seconds of game launch
 - **SC-002**: 100% of generated maps are validated as playable before being presented to players (no maps with unreachable pellets or ghost trap scenarios)
 - **SC-003**: At least 80% of generated maps within a session exhibit noticeably different wall layouts and layout characteristics from previously generated maps
-- **SC-004**: Players can successfully complete generated maps at the same difficulty level as hand-crafted maps with 90% completion rate across a sample of 50+ unique generated maps
+- **SC-004**: Players can successfully complete generated maps at the same difficulty level as hand-crafted maps with 90% completion rate across a sample of 50+ unique generated maps; testing MUST cover both 100% pellet victory condition and at least one <100% threshold (e.g., 80%)
 - **SC-005**: Ghost AI successfully navigates 95% of generated maps without permanent pathing issues or navigation failures
 - **SC-006**: Map generation algorithm produces maps with variety in structure while maintaining playability constraints (no 100% narrow corridors or 100% open layouts)
 
@@ -137,3 +138,5 @@ The system ensures that randomly generated maps maintain fairness and appropriat
 - Q: Map Selection UI → A: Explicit menu option every new game: player chooses "Random Map" or "Standard Map". Standard Map loads a hand-crafted level from existing pool.
 - Q: Game Startup Flow → A: On command line launch: title/splash screen displays first, then transitions to main menu.
 - Q: Splash Screen Interactivity → A: Splash screen remains visible until player presses Enter or Space key to proceed to main menu.
+- Q: Ghost Spawn Configuration → A: Maps support minimum 2, maximum 4 ghost spawns (configurable). If insufficient grid space for configured count, reduce count and retry; fallback minimum is 2 spawns.
+- Q: Theme Asset Path → A: Theme asset mapping implemented as sprite registry (JSON or Python enum) associating tile types (wall, pellet, powerup spawn, corridor) to theme-specific sprites per theme (standard, green_star, custom).

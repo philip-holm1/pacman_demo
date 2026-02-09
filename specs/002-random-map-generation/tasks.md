@@ -41,7 +41,7 @@
 ### 3.1 Map Generation Core
 
 - [ ] T014 [US1] Implement `src/pacman/generators/random_generator.py` with MapGenerator base class
-- [ ] T015 [P] [US1] Implement recursive backtracking maze generation algorithm in random_generator.py
+- [ ] T015 [P] [US1] Implement recursive backtracking maze generation algorithm in random_generator.py with deterministic RNG initialization and seed support for reproducible map generation during testing
 - [ ] T016 [P] [US1] Create grid representation and initialization in `src/pacman/generators/grid.py`
 - [ ] T017 [P] [US1] Implement pellet placement algorithm (distribute across generated corridors)
 - [ ] T018 [P] [US1] Implement Pac-Man spawn point placement (central, safe location)
@@ -89,7 +89,7 @@
 - [ ] T039 [US2] Create `src/pacman/themes/standard_theme.py` with standard tileset mapping
 - [ ] T040 [US2] Create `src/pacman/themes/green_star_theme.py` with green star tileset (reuse existing assets)
 - [ ] T041 [US2] Create `src/pacman/themes/custom_theme.py` template for future custom themes
-- [ ] T042 [US2] Implement theme asset mapping (grid tiles → sprite/asset selection by theme)
+- [ ] T042 [US2] Implement theme asset mapping as sprite registry (JSON or Python enum) mapping grid tile types (wall, pellet, powerup spawn) to theme-specific asset sprites; test on standard and green_star themes
 - [ ] T043 [US2] Integrate theme selection into map generation config
 
 ### 4.3 Testing & Validation
