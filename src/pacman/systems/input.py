@@ -9,6 +9,7 @@ class InputSample:
     pause_toggle: bool = False
     restart: bool = False
     quit_requested: bool = False
+    skin_toggle: bool = False
 
 
 class InputHandler:
@@ -51,6 +52,8 @@ class InputHandler:
                     sample.pause_toggle = True
                 elif event.key == pygame.K_r:
                     sample.restart = True
+                elif event.key == pygame.K_s:
+                    sample.skin_toggle = True
         keys = pygame.key.get_pressed()
         dx, dy = 0, 0
         if keys[self._pygame.K_LEFT]:

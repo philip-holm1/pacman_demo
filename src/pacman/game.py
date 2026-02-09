@@ -69,7 +69,9 @@ def run_placeholder(ticks: int = 5) -> None:
     """Run a minimal placeholder loop printing tick count then exit."""
     level = load_level("levels/level1.json")
     player = Player(x=level.player_spawn["x"], y=level.player_spawn["y"])
-    gs = GameState(level=level, player=player, level_source_path="levels/level1.json")
+    # Load skin preference
+    selected_skin = config.load_skin_preference()
+    gs = GameState(level=level, player=player, level_source_path="levels/level1.json", selected_skin=selected_skin)
     # Spawn ghosts from level definition with scatter corners
     for i, sp in enumerate(level.ghost_spawn_points):
         corner = assign_scatter_corner(i, level.width, level.height)
@@ -121,6 +123,17 @@ class FixedTimestepLoop:
                 self.state.toggle_pause()
             if sample.restart and self.state.mode in ("victory", "game_over"):
                 handle_restart(self.state)
+            if sample.skin_toggle:
+                # Cycle through available skins
+                skin_names = list(config.AVAILABLE_SKINS.keys())
+                current_idx = skin_names.index(self.state.selected_skin) if self.state.selected_skin in skin_names else 0
+                next_idx = (current_idx + 1) % len(skin_names)
+                self.state.selected_skin = skin_names[next_idx]
+                config.save_skin_preference(self.state.selected_skin)
+                # Clear sprite cache to force reload
+                from .systems.render import _skin_sprite_cache
+                _skin_sprite_cache.clear()
+                print(f"[input] Skin changed to: {config.AVAILABLE_SKINS[self.state.selected_skin]['display_name']}")
             dx, dy = sample.move_dx, sample.move_dy
             # Update player's last movement direction if input present
             if (dx, dy) != (0, 0):
@@ -181,7 +194,9 @@ class FixedTimestepLoop:
 def run_interactive(max_ticks: int | None = None) -> None:
     level = load_level("levels/level1.json")
     player = Player(x=level.player_spawn["x"], y=level.player_spawn["y"])
-    gs = GameState(level=level, player=player, level_source_path="levels/level1.json")
+    # Load skin preference
+    selected_skin = config.load_skin_preference()
+    gs = GameState(level=level, player=player, level_source_path="levels/level1.json", selected_skin=selected_skin)
     for i, sp in enumerate(level.ghost_spawn_points):
         corner = assign_scatter_corner(i, level.width, level.height)
         gs.ghosts.append(Ghost(id=f"g{i+1}", x=sp.get("x", 0), y=sp.get("y", 0), scatter_corner=corner))

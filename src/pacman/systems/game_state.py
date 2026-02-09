@@ -29,6 +29,8 @@ class GameState:
     _underlying_cycle_mode: str = "scatter"
     _underlying_cycle_ticks_snapshot: int = 0
     frightened_rng: random.Random = field(default_factory=lambda: random.Random(12345))
+    # Skin configuration
+    selected_skin: str = "default"
 
     def toggle_pause(self) -> None:
         self.paused = not self.paused

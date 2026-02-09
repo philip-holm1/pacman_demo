@@ -1,6 +1,8 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 from .game_state import GameState
 from .perf import PerfTracker
+from .. import config
+import os
 
 TILE_SIZE = 32
 
@@ -17,78 +19,197 @@ COLORS = {
     "powerup_invincibility": (255, 0, 255), # Magenta for InvincibilityBlink
 }
 
+# Cache for loaded skin sprites
+_skin_sprite_cache: Dict[str, Any] = {}
+
+def load_skin_assets(gs: GameState, pygame: Any) -> Dict[str, Any]:
+    """Load skin assets for the selected skin with fallback to default procedural rendering.
+    
+    Args:
+        gs: GameState containing selected_skin
+        pygame: Pygame module for loading images
+        
+    Returns:
+        Dictionary with asset keys mapped to loaded pygame surfaces or None for procedural rendering
+    """
+    skin_name = gs.selected_skin
+    cache_key = f"{skin_name}"
+    
+    # Return cached assets if available
+    if cache_key in _skin_sprite_cache:
+        return _skin_sprite_cache[cache_key]
+    
+    assets = {
+        "player_sprite": None,
+        "ghost_sprite": None,
+        "powerup_sprite": None,
+        "pellet_sprite": None,
+    }
+    
+    # Get skin configuration
+    skin_config = config.AVAILABLE_SKINS.get(skin_name, config.AVAILABLE_SKINS["default"])
+    skin_assets = skin_config.get("assets", {})
+    
+    # Try to load each asset, fall back to None (procedural) on failure
+    for asset_key, asset_path in skin_assets.items():
+        if asset_path is None:
+            continue
+        
+        if os.path.exists(asset_path):
+            try:
+                surface = pygame.image.load(asset_path).convert_alpha()
+                assets[asset_key] = surface
+            except Exception as e:
+                print(f"[render] Warning: Failed to load {asset_path}: {e}. Using default rendering.")
+                assets[asset_key] = None
+        else:
+            print(f"[render] Warning: Asset not found at {asset_path}. Using default rendering.")
+            assets[asset_key] = None
+    
+    # Cache the loaded assets
+    _skin_sprite_cache[cache_key] = assets
+    return assets
+
 
 def render(gs: GameState, screen: Any, pygame: Any, perf: Optional[PerfTracker] = None) -> None:
     screen.fill(COLORS["bg"])
+    
+    # Load skin assets
+    skin_assets = load_skin_assets(gs, pygame)
+    
+    # Use green tint for Green Star skin when assets are missing (temporary visual indicator)
+    is_green_star = gs.selected_skin == "green_star"
+    
     # Walls & floor
     for y, row in enumerate(gs.level.tile_grid):
         for x, ch in enumerate(row):
             if ch == "#":
-                pygame.draw.rect(screen, COLORS["wall"], (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
-    # Pellets
+                wall_color = (20, 80, 40) if is_green_star else COLORS["wall"]
+                pygame.draw.rect(screen, wall_color, (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
+    
+    # Pellets - use sprite if available, otherwise procedural
+    pellet_sprite = skin_assets.get("pellet_sprite")
     for p in gs.level.pellet_positions:
         cx = p["x"] * TILE_SIZE + TILE_SIZE // 2
         cy = p["y"] * TILE_SIZE + TILE_SIZE // 2
-        pygame.draw.circle(screen, COLORS["pellet"], (cx, cy), TILE_SIZE // 6)
-    # Powerups (render differently based on type)
+        if pellet_sprite:
+            # Scale sprite to fit tile and blit
+            scaled = pygame.transform.scale(pellet_sprite, (TILE_SIZE // 3, TILE_SIZE // 3))
+            rect = scaled.get_rect(center=(cx, cy))
+            screen.blit(scaled, rect)
+        else:
+            pellet_color = (100, 255, 150) if is_green_star else COLORS["pellet"]
+            pygame.draw.circle(screen, pellet_color, (cx, cy), TILE_SIZE // 6)
+    # Powerups - use sprite if available, otherwise procedural based on type
+    powerup_sprite = skin_assets.get("powerup_sprite")
     for p in gs.level.spawned_powerups:
         cx = p["x"] * TILE_SIZE + TILE_SIZE // 2
         cy = p["y"] * TILE_SIZE + TILE_SIZE // 2
         powerup_type = p.get("type", "SpeedBoost")
-        if powerup_type == "SpeedBoost":
-            # Draw as larger cyan circle with outline
-            pygame.draw.circle(screen, COLORS["powerup_speed"], (cx, cy), TILE_SIZE // 3)
-            pygame.draw.circle(screen, (255, 255, 255), (cx, cy), TILE_SIZE // 3, 2)
-        elif powerup_type == "GhostFreeze":
-            # Draw as light blue square
-            size = TILE_SIZE // 2
-            pygame.draw.rect(screen, COLORS["powerup_freeze"], (cx - size//2, cy - size//2, size, size))
-            pygame.draw.rect(screen, (255, 255, 255), (cx - size//2, cy - size//2, size, size), 2)
-        elif powerup_type == "ScoreMultiplier":
-            # Draw as orange star (diamond shape)
-            size = TILE_SIZE // 2
-            points = [(cx, cy - size//2), (cx + size//2, cy), (cx, cy + size//2), (cx - size//2, cy)]
-            pygame.draw.polygon(screen, COLORS["powerup_multiplier"], points)
-            pygame.draw.polygon(screen, (255, 255, 255), points, 2)
-        elif powerup_type == "InvincibilityBlink":
-            # Draw as magenta hexagon
-            import math
-            size = TILE_SIZE // 3
-            points = []
-            for i in range(6):
-                angle = math.pi / 3 * i
-                px = cx + size * math.cos(angle)
-                py = cy + size * math.sin(angle)
-                points.append((px, py))
-            pygame.draw.polygon(screen, COLORS["powerup_invincibility"], points)
-            pygame.draw.polygon(screen, (255, 255, 255), points, 2)
-    # Player (with invincibility blink effect)
+        
+        if powerup_sprite:
+            # Use skin sprite for all powerup types
+            scaled = pygame.transform.scale(powerup_sprite, (TILE_SIZE // 2, TILE_SIZE // 2))
+            rect = scaled.get_rect(center=(cx, cy))
+            screen.blit(scaled, rect)
+        else:
+            # Procedural rendering (default)
+            if powerup_type == "SpeedBoost":
+                # Draw as larger cyan circle with outline
+                pygame.draw.circle(screen, COLORS["powerup_speed"], (cx, cy), TILE_SIZE // 3)
+                pygame.draw.circle(screen, (255, 255, 255), (cx, cy), TILE_SIZE // 3, 2)
+            elif powerup_type == "GhostFreeze":
+                # Draw as light blue square
+                size = TILE_SIZE // 2
+                pygame.draw.rect(screen, COLORS["powerup_freeze"], (cx - size//2, cy - size//2, size, size))
+                pygame.draw.rect(screen, (255, 255, 255), (cx - size//2, cy - size//2, size, size), 2)
+            elif powerup_type == "ScoreMultiplier":
+                # Draw as orange star (diamond shape)
+                size = TILE_SIZE // 2
+                points = [(cx, cy - size//2), (cx + size//2, cy), (cx, cy + size//2), (cx - size//2, cy)]
+                pygame.draw.polygon(screen, COLORS["powerup_multiplier"], points)
+                pygame.draw.polygon(screen, (255, 255, 255), points, 2)
+            elif powerup_type == "InvincibilityBlink":
+                # Draw as magenta hexagon
+                import math
+                size = TILE_SIZE // 3
+                points = []
+                for i in range(6):
+                    angle = math.pi / 3 * i
+                    px = cx + size * math.cos(angle)
+                    py = cy + size * math.sin(angle)
+                    points.append((px, py))
+                pygame.draw.polygon(screen, COLORS["powerup_invincibility"], points)
+                pygame.draw.polygon(screen, (255, 255, 255), points, 2)
+    # Player - use sprite if available, otherwise procedural (with invincibility blink effect)
+    player_sprite = skin_assets.get("player_sprite")
     if gs.player.blink_on:
-        player_color = COLORS["player"]
-        # Add glow effect if invincible
+        cx = gs.player.x * TILE_SIZE + TILE_SIZE // 2
+        cy = gs.player.y * TILE_SIZE + TILE_SIZE // 2
         has_invincibility = any(p.type == "InvincibilityBlink" for p in gs.player.active_powerups)
-        if has_invincibility:
-            # Draw outer glow
-            pygame.draw.circle(screen, (255, 0, 255), (gs.player.x * TILE_SIZE + TILE_SIZE // 2, gs.player.y * TILE_SIZE + TILE_SIZE // 2), TILE_SIZE // 2 - 2)
-        pygame.draw.circle(screen, player_color, (gs.player.x * TILE_SIZE + TILE_SIZE // 2, gs.player.y * TILE_SIZE + TILE_SIZE // 2), TILE_SIZE // 2 - 4)
-    # Ghosts (with frozen state visual)
+        
+        if player_sprite:
+            # Use skin sprite
+            if has_invincibility:
+                # Draw outer glow
+                pygame.draw.circle(screen, (255, 0, 255), (cx, cy), TILE_SIZE // 2 - 2)
+            scaled = pygame.transform.scale(player_sprite, (TILE_SIZE - 8, TILE_SIZE - 8))
+            rect = scaled.get_rect(center=(cx, cy))
+            screen.blit(scaled, rect)
+        else:
+            # Procedural rendering (default)
+            player_color = (100, 255, 100) if is_green_star else COLORS["player"]
+            if has_invincibility:
+                # Draw outer glow
+                glow_color = (150, 255, 150) if is_green_star else (255, 0, 255)
+                pygame.draw.circle(screen, glow_color, (cx, cy), TILE_SIZE // 2 - 2)
+            pygame.draw.circle(screen, player_color, (cx, cy), TILE_SIZE // 2 - 4)
+            # Draw star shape for green_star skin
+            if is_green_star:
+                import math
+                points = []
+                for i in range(5):
+                    angle = (math.pi * 2 * i / 5) - math.pi / 2
+                    px = cx + (TILE_SIZE // 2 - 6) * math.cos(angle)
+                    py = cy + (TILE_SIZE // 2 - 6) * math.sin(angle)
+                    points.append((px, py))
+                pygame.draw.polygon(screen, (50, 200, 50), points, 2)
+    # Ghosts - use sprite if available, otherwise procedural (with frozen state visual)
+    ghost_sprite = skin_assets.get("ghost_sprite")
     for g in gs.ghosts:
-        ghost_color = COLORS["ghost"]
-        if g.state == "frozen":
-            ghost_color = (100, 150, 255)  # Light blue for frozen ghosts
-        pygame.draw.rect(screen, ghost_color, (g.x * TILE_SIZE + 4, g.y * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8))
-        # Add ice effect for frozen ghosts
-        if g.state == "frozen":
-            pygame.draw.rect(screen, (200, 230, 255), (g.x * TILE_SIZE + 4, g.y * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8), 2)
+        gx = g.x * TILE_SIZE + 4
+        gy = g.y * TILE_SIZE + 4
+        
+        if ghost_sprite:
+            # Use skin sprite
+            scaled = pygame.transform.scale(ghost_sprite, (TILE_SIZE - 8, TILE_SIZE - 8))
+            screen.blit(scaled, (gx, gy))
+            # Add ice effect for frozen ghosts
+            if g.state == "frozen":
+                pygame.draw.rect(screen, (200, 230, 255), (gx, gy, TILE_SIZE - 8, TILE_SIZE - 8), 2)
+        else:
+            # Procedural rendering (default)
+            ghost_color = (100, 255, 150) if is_green_star else COLORS["ghost"]
+            if g.state == "frozen":
+                ghost_color = (100, 150, 255)  # Light blue for frozen ghosts
+            pygame.draw.rect(screen, ghost_color, (gx, gy, TILE_SIZE - 8, TILE_SIZE - 8))
+            # Add ice effect for frozen ghosts
+            if g.state == "frozen":
+                pygame.draw.rect(screen, (200, 230, 255), (gx, gy, TILE_SIZE - 8, TILE_SIZE - 8), 2)
     # Mode overlay (simple text)
     font = pygame.font.SysFont(None, 24)
     if gs.mode == "playing":
         fps_info = ""
         if perf is not None:
             fps_info = f" FPS:{perf.avg_fps():.1f} Worst:{perf.worst_ms():.1f}ms"
+        skin_name = config.AVAILABLE_SKINS.get(gs.selected_skin, {}).get("display_name", "Unknown")
         status = f"Mode:{gs.mode} L:{gs.player.lives} S:{gs.player.score} HS:{gs.high_score} Mult:{gs.player.score_multiplier}{fps_info}"
         txt = font.render(status, True, (255, 255, 255))
         screen.blit(txt, (8, 8))
+        
+        # Display current skin (press S to change)
+        skin_txt = font.render(f"Skin: {skin_name} (Press S to change)", True, (180, 180, 180))
+        screen.blit(skin_txt, (8, screen.get_height() - 30))
         
         # Display active powerups
         if gs.player.active_powerups:
@@ -97,7 +218,6 @@ def render(gs: GameState, screen: Any, pygame: Any, perf: Optional[PerfTracker] 
             screen.blit(powerup_label, (8, y_offset))
             y_offset += 20
             
-            from .. import config
             powerup_colors = {
                 "SpeedBoost": COLORS["powerup_speed"],
                 "GhostFreeze": COLORS["powerup_freeze"],
